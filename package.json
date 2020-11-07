@@ -1,0 +1,23 @@
+{
+  "name": "express-bakend-practice",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EvinduArunoda/express-bakend-practice.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/EvinduArunoda/express-bakend-practice/issues"
+  },
+  "homepage": "https://github.com/EvinduArunoda/express-bakend-practice#readme",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
