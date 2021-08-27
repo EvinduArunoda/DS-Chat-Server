@@ -9,7 +9,6 @@ app.get('/', (_:any,res:any) => {
     res.send('Your Express App');
 });
 
-
 app.listen(port, () => {
     test();
     console.log(`Server is running on port: ${port}`)
