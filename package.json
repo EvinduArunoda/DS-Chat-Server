@@ -22,7 +22,9 @@
   },
   "homepage": "https://github.com/EvinduArunoda/express-bakend-practice#readme",
   "dependencies": {
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "net": "^1.0.2",
+    "sys": "0.0.1"
   },
   "devDependencies": {
     "@types/node": "^16.9.1",
