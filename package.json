@@ -22,10 +22,10 @@
   },
   "homepage": "https://github.com/EvinduArunoda/express-bakend-practice#readme",
   "dependencies": {
-    "express": "^4.17.1",
-    "webdav-server": "^2.6.2"
+    "express": "^4.17.1"
   },
   "devDependencies": {
+    "@types/node": "^16.9.1",
     "@typescript-eslint/eslint-plugin": "4.29.3",
     "@typescript-eslint/parser": "4.29.3",
     "eslint": "7.32.0",
