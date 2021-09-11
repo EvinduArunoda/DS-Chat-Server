@@ -26,13 +26,14 @@ var net = require('net');
 var sockets : Socket[] = [];
 
 var svr = net.createServer(function(sock: Socket) {
-    sys.puts('Connected: ' + sock.remoteAddress + ':' + sock.remotePort);
+    console.log('Connected: ' + sock.remoteAddress + ':' + sock.remotePort);
     sock.write('Hello ' + sock.remoteAddress + ':' + sock.remotePort + '\n');
     sockets.push(sock);
 
+
     sock.on('data', function(data : any) {  // client writes message
         if (data == 'exit') {
-            sys.puts('exit command received: ' + sock.remoteAddress + ':' + sock.remotePort + '\n');
+            console.log('exit command received: ' + sock.remoteAddress + ':' + sock.remotePort + '\n');
             sock.destroy();
             var idx = sockets.indexOf(sock);
             if (idx != -1) {
@@ -51,7 +52,7 @@ var svr = net.createServer(function(sock: Socket) {
     });
 
     sock.on('end', function(data : any) { // client disconnects
-        sys.puts('Disconnected: ' + data + data.remoteAddress + ':' + data.remotePort + '\n');
+        console.log('Disconnected: ' + data + data.remoteAddress + ':' + data.remotePort + '\n');
         var idx = sockets.indexOf(sock);
         if (idx != -1) {
             delete sockets[idx];
