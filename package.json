@@ -1,5 +1,5 @@
 {
-  "name": "express-bakend-practice",
+  "name": "ds-chat-server",
   "version": "1.0.0",
   "description": "",
   "main": "build/index.js",
@@ -13,19 +13,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/EvinduArunoda/express-bakend-practice.git"
+    "url": "git+https://github.com/EvinduArunoda/DS-Chat-Server.git"
   },
   "author": "",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/EvinduArunoda/express-bakend-practice/issues"
-  },
-  "homepage": "https://github.com/EvinduArunoda/express-bakend-practice#readme",
-  "dependencies": {
-    "express": "^4.17.1",
-    "net": "^1.0.2",
-    "sys": "0.0.1"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/node": "^16.9.1",
     "@typescript-eslint/eslint-plugin": "4.29.3",
