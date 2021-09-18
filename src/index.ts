@@ -1,15 +1,12 @@
 import net, {Socket} from "net";
-import {readJSONfromBuffer, writeJSONtoSocket} from "./utils";
-import {ClientSocketInterface} from './Interfaces/clientSocketInterface';
-
-const sockets: ClientSocketInterface = {};
+import {readJSONfromBuffer} from "./utils";
+import {NewIdentityHandler} from "./Handlers/newIdetityHandler";
 
 const server = net.createServer();
 
 server.on('connection', (sock: Socket) => {
     console.log('Connected: ' + sock.remoteAddress + ':' + sock.remotePort);
     // sockets.push(sock);
-
 
     // recive messages from client
     sock.on('data', function(buffer: Buffer) {
@@ -18,17 +15,7 @@ server.on('connection', (sock: Socket) => {
 
         switch (data.type) {
             case "newidentity":
-                const identity = data.identity;
-
-                if (Object.keys(sockets).includes(identity)) {
-                    writeJSONtoSocket(sock, {type: "newidentity", approved: "false"});
-                } else {
-                    // Check id in other servers
-                    sockets[identity] = sock;
-                    writeJSONtoSocket(sock, {type: "newidentity", approved: "true"});
-                }
-
-                console.log("reply sent")
+                new NewIdentityHandler().handle(data, sock);
                 break;
             default:
                 break;
