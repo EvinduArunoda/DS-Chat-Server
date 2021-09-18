@@ -1,4 +1,4 @@
-import {NewIdentityService} from "../Services/newIdentityService";
+import {NewIdentityService} from "./newIdentityService";
 import {Socket} from "net";
 
 export class NewIdentityHandler {
