@@ -1,11 +1,11 @@
 import {Socket} from "net";
 import {writeJSONtoSocket} from "../../Utils/utils";
-import {AddNewIdentity, CheckIdentityLocally} from "../../DAOs/Sockets";
+import {AddNewIdentity, CheckIdentityLocally} from "../../DAOs/Clients";
 
-export class NewIdentityService {
+export class ClientService {
     constructor() {}
 
-   handleNewIdentity(data: any, sock: Socket){
+    handleNewIdentity(data: any, sock: Socket){
         const identity = data.identity;
 
         if (CheckIdentityLocally(identity)) {
@@ -17,6 +17,4 @@ export class NewIdentityService {
         }
         console.log("reply sent")
     }
-
-
 }

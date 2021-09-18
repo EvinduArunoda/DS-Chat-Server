@@ -1,5 +1,5 @@
 import {Socket} from "net";
 
-export interface ClientSocketInterface {
+export interface ClientInterface {
     [key:string] : Socket;
 }

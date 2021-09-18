@@ -1,6 +1,6 @@
 import net, {Socket} from "net";
 import {readJSONfromBuffer} from "./Utils/utils";
-import {NewIdentityHandler} from "./Services/NewIdentitySrvice/newIdetityHandler";
+import {ClientHandler} from "./Services/NewIdentitySrvice/clientHandler";
 
 const server = net.createServer();
 
@@ -15,7 +15,7 @@ server.on('connection', (sock: Socket) => {
 
         switch (data.type) {
             case "newidentity":
-                new NewIdentityHandler().handle(data, sock);
+                new ClientHandler().newIdentity(data, sock);
                 break;
             default:
                 break;
