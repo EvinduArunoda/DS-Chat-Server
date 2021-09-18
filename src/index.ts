@@ -1,7 +1,7 @@
 import net, {Socket} from "net";
 import {readJSONfromBuffer, writeJSONtoSocket} from "./utils";
 
-var sockets : Socket[] = [];
+const sockets : Socket[] = [];
 
 const server = net.createServer();
 
@@ -12,16 +12,17 @@ server.on('connection', (sock: Socket) => {
     // recive messages from client
     sock.on('data', function(buffer: Buffer) {
         const data = readJSONfromBuffer(buffer);
+        console.log(data)
 
         switch (data.type) {
             case "newidentity":
+                console.log("reply sent")
                 writeJSONtoSocket(sock, {type: "newidentity", approved: "false"})
                 break;
             default:
                 break;
         }
 
-        console.log(data.type)
         // if (data == 'exit') {
         //     console.log('exit command received: ' + sock.remoteAddress + ':' + sock.remotePort + '\n');
             // sock.destroy();
@@ -42,7 +43,7 @@ server.on('connection', (sock: Socket) => {
     });
 
     sock.on('end', function(data : any) { // client disconnects
-        console.log('Disconnected: ' + data + data.remoteAddress + ':' + data.remotePort + '\n');
+        console.log('Disconnected: ' + data + '\n');
         // var idx = sockets.indexOf(sock);
         // if (idx != -1) {
         //     delete sockets[idx];
