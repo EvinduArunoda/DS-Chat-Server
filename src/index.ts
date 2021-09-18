@@ -1,5 +1,5 @@
 import net, {Socket} from "net";
-import {readJSONfromBuffer} from "./utils";
+import {readJSONfromBuffer} from "./Utils/utils";
 import {NewIdentityHandler} from "./Services/NewIdentitySrvice/newIdetityHandler";
 
 const server = net.createServer();

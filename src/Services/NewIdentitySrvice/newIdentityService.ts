@@ -1,5 +1,5 @@
 import {Socket} from "net";
-import {writeJSONtoSocket} from "../../utils";
+import {writeJSONtoSocket} from "../../Utils/utils";
 import {AddNewIdentity, CheckIdentityLocally} from "../../DAOs/Sockets";
 
 export class NewIdentityService {
