@@ -1,5 +1,4 @@
 import {ChatRoomInterface} from "../Interfaces/ChatRoomInterface";
-import {clients} from "./Clients";
 
 export const chatRooms: ChatRoomInterface = {};
 
