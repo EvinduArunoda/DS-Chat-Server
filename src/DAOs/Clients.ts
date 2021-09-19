@@ -17,3 +17,12 @@ export const removeClient = (sock: Socket): boolean => {
     const identity = Object.keys(clients)[idx]
     return delete clients[identity];
 }
+
+export class Clients {
+    constructor(
+        public id: string,
+        public socket: Socket,
+        public isAdmin: boolean
+    ) {
+    }
+}
