@@ -1,6 +1,6 @@
 import {Socket} from "net";
-import {writeJSONtoSocket, isValidIdentity} from "../../Utils/utils";
-import {addNewClient, isRegistered, removeClient} from "../../DAOs/Clients";
+import {writeJSONtoSocket, isValidIdentity} from "../Utils/utils";
+import {addNewClient, isRegistered, removeClient} from "../DAOs/Clients";
 
 export class ClientService {
     constructor() {}

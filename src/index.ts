@@ -1,6 +1,6 @@
 import net, {Socket} from "net";
 import {readJSONfromBuffer} from "./Utils/utils";
-import {ClientHandler} from "./Services/ClientSrvice/clientHandler";
+import {ClientHandler} from "./Handlers/clientHandler";
 
 const server = net.createServer();
 
