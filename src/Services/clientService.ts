@@ -1,13 +1,13 @@
 import {Socket} from "net";
-import {writeJSONtoSocket, isValidIdentity} from "../Utils/utils";
-import {addNewClient, isRegistered, removeClient} from "../DAOs/Clients";
+import {writeJSONtoSocket} from "../Utils/utils";
+import {addNewClient, isRegistered, isValidIdentity, removeClient} from "../DAOs/Clients";
 
 export class ClientService {
     constructor() {}
 
     registerClient(data: any, sock: Socket): boolean {
         const identity = data.identity;
-        if (!isValidIdentity(identity) || isRegistered(identity)) {
+        if (isRegistered(identity)) {
             writeJSONtoSocket(sock, {type: "newidentity", approved: "false"});
             return false
         } else {
