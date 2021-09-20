@@ -2,43 +2,25 @@ import {Socket} from "net";
 import { isValidIdentity } from "../Utils/utils";
 import {ClientInterface} from "../Interfaces/clientInterface";
 
-export const clients: ClientInterface = {};
-
-export const isRegistered = (identity: string): boolean => {
-    if (!isValidIdentity) return false;
-    return Object.keys(clients).includes(identity);
-}
-
-export const addNewClient = (identity: string, sock: Socket): void => {
-    clients[identity] = sock;
-}
-
-export const removeClient = (sock: Socket): boolean => {
-    const idx = Object.values(clients).indexOf(sock);
-    if (idx == -1) return false;
-    const identity = Object.keys(clients)[idx]
-    return delete clients[identity];
-}
-
 // Clients DAO
 export class ClientsDAO {
-    constructor(
-    ) {
-    }
+    private clients: ClientInterface = {};
+    
+    constructor() {}
 
     isRegistered (identity: string): boolean {
         if (!isValidIdentity) return false;
-        return Object.keys(clients).includes(identity);
+        return Object.keys(this.clients).includes(identity);
     }
 
     addNewClient(identity: string, sock: Socket): void {
-        clients[identity] = sock;
+        this.clients[identity] = sock;
     }
 
     removeClient(sock: Socket): boolean {
-        const idx = Object.values(clients).indexOf(sock);
+        const idx = Object.values(this.clients).indexOf(sock);
         if (idx == -1) return false;
-        const identity = Object.keys(clients)[idx]
-        return delete clients[identity];
+        const identity = Object.keys(this.clients)[idx]
+        return delete this.clients[identity];
     }
 }

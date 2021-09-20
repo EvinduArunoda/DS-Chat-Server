@@ -4,12 +4,12 @@ import {ServiceLocator} from "../Utils/serviceLocator";
 
 export class ClientHandler {
     newIdentity (data: any, sock: Socket): boolean {
-        const service = ServiceLocator.clientService;
+        const service = new ClientService();
         return service.registerClient(data, sock);
     }
 
     disconnect (sock: Socket): boolean {
-        const service = ServiceLocator.clientService;
+        const service = new ClientService();
         return service.removeClient(sock);
     }
 }
