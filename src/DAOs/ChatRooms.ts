@@ -1,7 +1,7 @@
 import {ChatRoomInterface} from "../Interfaces/ChatRoomInterface";
 
 export class ChatroomDAO {
-    private chatRooms: ChatRoomInterface = {};
+    private chatRooms: ChatRoomInterface = { "mainHall" : { owner: undefined, participants :[]}};
 
     constructor() {}
 
