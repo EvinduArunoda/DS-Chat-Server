@@ -1,8 +1,9 @@
-export interface ChatRoomInterface {
-    [key:string] : LocalChatRoom;
+export interface ChatroomInterface {
+    [key:string] : LocalChatroom;
 }
 
-export interface LocalChatRoom {
+export interface LocalChatroom {
     owner?: string;
-    participants: string[];
+    participants: Set<string>;
+    default: boolean;
 }

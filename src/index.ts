@@ -2,6 +2,9 @@ import net, {Socket} from "net";
 import {readJSONfromBuffer} from "./Utils/utils";
 import {ClientHandler} from "./Handlers/clientHandler";
 
+// server id
+process.env['SERVER_ID'] = '1';
+
 const server = net.createServer();
 
 server.on('connection', (sock: Socket) => {

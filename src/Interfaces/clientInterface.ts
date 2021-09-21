@@ -1,5 +1,10 @@
 import {Socket} from "net";
 
 export interface ClientInterface {
-    [key:string] : Socket;
+    [key:string] : LocalClient;
+}
+
+export interface LocalClient {
+    socket: Socket;
+    roomid: string;
 }

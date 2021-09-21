@@ -1,6 +1,6 @@
 import {Socket} from "net";
 import { isValidIdentity } from "../Utils/utils";
-import {ClientInterface} from "../Interfaces/clientInterface";
+import {ClientInterface, LocalClient} from "../Interfaces/clientInterface";
 
 // Clients DAO
 export class ClientsDAO {
@@ -14,7 +14,7 @@ export class ClientsDAO {
     }
 
     addNewClient(identity: string, sock: Socket): void {
-        this.clients[identity] = sock;
+        this.clients[identity] = {socket: sock, roomid: `MainHall-s${process.env.SERVER_ID}`};
     }
 
     removeClient(sock: Socket): boolean {
@@ -22,5 +22,9 @@ export class ClientsDAO {
         if (idx == -1) return false;
         const identity = Object.keys(this.clients)[idx]
         return delete this.clients[identity];
+    }
+
+    getClient(identity: string): LocalClient {
+        return this.clients[identity];
     }
 }

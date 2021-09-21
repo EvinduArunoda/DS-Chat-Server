@@ -1,5 +1,5 @@
 import {ClientsDAO} from "../DAOs/Clients";
-import {ChatroomDAO} from "../DAOs/ChatRooms";
+import {ChatroomDAO} from "../DAOs/Chatrooms";
 
 export class ServiceLocator {
     private static readonly _instances: Map<String, any> = new Map<String, any>();

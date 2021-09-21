@@ -1,19 +1,41 @@
-import {ChatRoomInterface} from "../Interfaces/ChatRoomInterface";
+import {ChatroomInterface} from "../Interfaces/ChatroomInterface";
 
 export class ChatroomDAO {
-    private chatRooms: ChatRoomInterface = { "mainHall" : { owner: undefined, participants :[]}};
+    private chatrooms: ChatroomInterface = {};
 
-    constructor() {}
+    constructor() {
+        this.chatrooms[`MainHall-s${process.env.SERVER_ID}`] = {
+            owner: undefined,
+            participants : new Set<string>(),
+            default: true
+        };
+    }
 
-    addNewChatRoom(roomId: string, owner: string): void {
-        this.chatRooms[roomId] = {owner : owner, participants: [owner]}
+    addNewChatroom(roomId: string, owner: string): void {
+        this.chatrooms[roomId] = {
+            owner : owner, 
+            participants: new Set<string>(owner), 
+            default: false
+        };
+    }
+
+    deleteChatroom(roomId: string){
+        delete this.chatrooms[roomId];
+    }
+
+    addParticipantDefault(participant: string): void {
+        this.chatrooms[`MainHall-s${process.env.SERVER_ID}`].participants.add(participant);
     }
 
     addParticipant(roomId: string, participant: string): void {
-        this.chatRooms[roomId].participants = [...this.chatRooms[roomId].participants, participant]
+        this.chatrooms[roomId].participants.add(participant);
     }
 
     removeParticipant(roomId: string, participant: string): void {
+        this.chatrooms[roomId].participants.delete(participant);
+    }
 
+    getParticipants(roomId: string): Set<string> {
+        return this.chatrooms[roomId].participants;
     }
 }

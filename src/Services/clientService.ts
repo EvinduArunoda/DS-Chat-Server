@@ -11,9 +11,11 @@ export class ClientService {
             writeJSONtoSocket(sock, {type: "newidentity", approved: "false"});
             return false
         } else {
-            // Check id in other servers
+            // TODO: Check id in other servers
             ServiceLocator.clientsDAO.addNewClient(identity, sock);
             writeJSONtoSocket(sock, {type: "newidentity", approved: "true"});
+            // TODO: inform other servers
+            ServiceLocator.chatroomDAO.addParticipantDefault(identity);
             return true
         }
     }
