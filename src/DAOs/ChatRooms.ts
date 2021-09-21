@@ -1,15 +1,19 @@
 import {ChatRoomInterface} from "../Interfaces/ChatRoomInterface";
 
-export const chatRooms: ChatRoomInterface = {};
+export class ChatroomDAO {
+    private chatRooms: ChatRoomInterface = {};
 
-export const addNewChatRoom = (roomId: string, owner: string): void => {
-    chatRooms[roomId] = {owner : owner, participants: [owner]}
-}
+    constructor() {}
 
-export const addParticipant = (roomId: string, participant: string): void => {
-    chatRooms[roomId].participants = [...chatRooms[roomId].participants, participant]
-}
+    addNewChatRoom(roomId: string, owner: string): void {
+        this.chatRooms[roomId] = {owner : owner, participants: [owner]}
+    }
 
-export const removeParticipant = (roomId: string, participant: string): void => {
+    addParticipant(roomId: string, participant: string): void {
+        this.chatRooms[roomId].participants = [...this.chatRooms[roomId].participants, participant]
+    }
 
+    removeParticipant(roomId: string, participant: string): void {
+
+    }
 }
