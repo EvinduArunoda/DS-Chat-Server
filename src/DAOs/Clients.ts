@@ -15,7 +15,6 @@ export class ClientsDAO {
      * @returns boolean
      */
     isRegistered(identity: string): boolean {
-        if (!isValidIdentity) return false;
         return _.has(this.clients, identity);
     }
 
@@ -49,14 +48,14 @@ export class ClientsDAO {
     }
 
     /**
-     * get roomid from socket
+     * get client from socket
      * @param sock socket
      * @returns roomid
      */
-    getRoomId(sock: Socket): string | undefined {
+    getClient(sock: Socket): LocalClient | undefined {
         const identity = _.findKey(this.clients, ['socket', sock])
         if (!identity) return;
-        return this.clients[identity].roomId;
+        return this.clients[identity];
     }
 
     /**
@@ -75,5 +74,15 @@ export class ClientsDAO {
      */
     getClientsFromId(ids: string[]): LocalClient[] {
         return _.values(_.pick(this.clients, ids));
+    }
+
+    /**
+     * join a chatroom
+     * @param roomId roomid
+     * @param identity identity
+     * @param isOwner is owner of the chatroom
+     */
+    joinChatroom(roomId: string, identity: string): void {
+        this.clients[identity].roomId = roomId;
     }
 }

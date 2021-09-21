@@ -12,14 +12,30 @@ export class ChatroomDAO {
     }
 
     /**
-     * add new chatroom
-     * @param roomId roomid
-     * @param owner identity
+     * check if the roomid is unique
+     * @param roomid client id
+     * @returns boolean
      */
-    addNewChatroom(roomId: string, owner: string): void {
-        this.chatrooms[roomId] = {
-            owner: owner,
-            participants: new Set<string>(owner),
+    isRegistered(roomid: string): boolean {
+        return _.has(this.chatrooms, roomid);
+    }
+
+    isOwner(identity: string, roomid: string): boolean {
+        return this.chatrooms[roomid].owner === identity
+    }
+
+    /**
+     * add new chatroom
+     * @param previousRoomId roomid of previous group
+     * @param newRoomId roomid of new group
+     * @param identity identity
+     */
+    addNewChatroom(previousRoomId: string, newRoomId: string, identity: string): void {
+        // remove from previous chatroom
+        this.removeParticipant(previousRoomId, identity);
+        this.chatrooms[newRoomId] = {
+            owner: identity,
+            participants: new Set<string>(identity),
         };
     }
 

@@ -1,7 +1,7 @@
 import net, { Socket } from "net";
 import { readJSONfromBuffer } from "./Utils/utils";
 import { ClientHandler } from "./Handlers/clientHandler";
-import { ChatroomHandler } from "./Handlers/chatroomHandeler";
+import { ChatroomHandler } from "./Handlers/chatroomHandler";
 
 // server id
 process.env['SERVER_ID'] = '1';
@@ -21,12 +21,11 @@ server.on('connection', (sock: Socket) => {
             case "newidentity":
                 return ClientHandler.newIdentity(data, sock);
             case "list":
-                return ChatroomHandler.listChatrooms(sock);
+                return ChatroomHandler.list(sock);
             case "who":
-                return ChatroomHandler.listParticipants(sock);
+                return ChatroomHandler.who(sock);
             case "createroom":
-                // TODO: create room
-                return;
+                return ChatroomHandler.createRoom(data, sock);
             case "joinroom":
                 // TODO: join room
                 return;
