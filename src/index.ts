@@ -1,6 +1,7 @@
-import net, {Socket} from "net";
-import {readJSONfromBuffer} from "./Utils/utils";
-import {ClientHandler} from "./Handlers/clientHandler";
+import net, { Socket } from "net";
+import { readJSONfromBuffer } from "./Utils/utils";
+import { ClientHandler } from "./Handlers/clientHandler";
+import { ChatroomHandler } from "./Handlers/chatroomHandeler";
 
 // server id
 process.env['SERVER_ID'] = '1';
@@ -12,14 +13,32 @@ server.on('connection', (sock: Socket) => {
     // sockets.push(sock);
 
     // recive messages from client
-    sock.on('data', function(buffer: Buffer) {
+    sock.on('data', function (buffer: Buffer) {
         const data = readJSONfromBuffer(buffer);
         console.log(data)
 
         switch (data.type) {
             case "newidentity":
-                new ClientHandler().newIdentity(data, sock);
-                break;
+                return ClientHandler.newIdentity(data, sock);
+            case "list":
+                return ChatroomHandler.listChatrooms(sock);
+            case "who":
+                return ChatroomHandler.listParticipants(sock);
+            case "createroom":
+                // TODO: create room
+                return;
+            case "joinroom":
+                // TODO: join room
+                return;
+            case "deleteroom":
+                // TODO: delete room
+                return;
+            case "message":
+                // TODO: create room
+                return;
+            case "quit":
+                // TODO: disconnect
+                return;
             default:
                 break;
         }
@@ -31,8 +50,8 @@ server.on('connection', (sock: Socket) => {
     })
 
     // client closes with or without error
-    sock.on('close', function(isError: boolean) {
-        new ClientHandler().disconnect(sock);
+    sock.on('close', function (isError: boolean) {
+        ClientHandler.disconnect(sock);
     });
 });
 

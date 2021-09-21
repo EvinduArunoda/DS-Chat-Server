@@ -4,9 +4,9 @@ import { ServiceLocator } from "../Utils/serviceLocator";
 import { ChatroomService } from "./chatroomService";
 
 export class ClientService {
-    constructor() { }
+    private constructor() { }
 
-    registerClient(data: any, sock: Socket): boolean {
+    static registerClient(data: any, sock: Socket): boolean {
         const identity = data.identity;
         if (ServiceLocator.clientsDAO.isRegistered(identity)) {
             writeJSONtoSocket(sock, { type: "newidentity", approved: "false" });
@@ -23,7 +23,7 @@ export class ClientService {
         }
     }
 
-    removeClient(sock: Socket): boolean {
+    static removeClient(sock: Socket): boolean {
         return ServiceLocator.clientsDAO.removeClient(sock);
     }
 }

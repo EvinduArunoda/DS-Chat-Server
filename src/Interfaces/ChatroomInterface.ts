@@ -5,5 +5,4 @@ export interface ChatroomInterface {
 export interface LocalChatroom {
     owner?: string;
     participants: Set<string>;
-    default: boolean;
 }
