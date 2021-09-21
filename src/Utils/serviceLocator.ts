@@ -1,10 +1,10 @@
-import {ClientsDAO} from "../DAOs/Clients";
-import {ChatroomDAO} from "../DAOs/Chatrooms";
+import { ClientsDAO } from "../DAOs/Clients";
+import { ChatroomDAO } from "../DAOs/Chatrooms";
 
 export class ServiceLocator {
     private static readonly _instances: Map<String, any> = new Map<String, any>();
 
-    private constructor() {}
+    private constructor() { }
 
     static get clientsDAO(): ClientsDAO {
         const key = 'clientsDAO';
