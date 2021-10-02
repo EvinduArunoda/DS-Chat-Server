@@ -31,8 +31,7 @@ server.on('connection', (sock: Socket) => {
             case "movejoin":
                 // TODO: move from another server
             case "deleteroom":
-                // TODO: delete room
-                return;
+                return ChatroomHandler.deleteRoom(data, sock);
             case "message":
                 // TODO: create room
                 return;

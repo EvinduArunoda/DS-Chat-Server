@@ -93,4 +93,14 @@ export class ClientsDAO {
         this.clients[identity].roomId = roomId;
         console.log("ClientsDAO.joinChatroom", identity);
     }
+
+    /**
+     * move client to the mainHall
+     * @param identity identity
+     */
+    moveToMainHall(identity: string): void {
+        this.clients[identity].roomId = `MainHall-s${process.env.SERVER_ID}`
+    }
+
+
 }

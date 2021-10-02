@@ -92,4 +92,23 @@ export class ChatroomService {
         }
         return true;
     }
+
+    static deleteRoom(data: any, sock: Socket): boolean {
+        const { roomid } = data;
+        const identity = ServiceLocator.clientsDAO.getIdentity(sock);
+        if (!identity) return false;
+        // check if the user is the owner of the chatroom
+        if (isValidIdentity(roomid) && ServiceLocator.chatroomDAO.isOwner(identity, roomid)) {
+            const participants = ServiceLocator.chatroomDAO.getParticipants(roomid);
+            // move all participants to the MainHall
+            for (const participant of participants) {
+                ServiceLocator.clientsDAO.moveToMainHall(participant);
+            }
+            // delete chatroom
+            ServiceLocator.chatroomDAO.deleteChatroom(roomid);
+        } else {
+            return false;
+        }
+        return true;
+    }
 }
