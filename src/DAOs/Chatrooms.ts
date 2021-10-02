@@ -59,7 +59,7 @@ export class ChatroomDAO {
      */
     getRoomIds(): string[] {
         const roomIds = _.keys(this.chatrooms);
-        console.log("ChatroomDAO.deleteChatroom", roomIds);
+        console.log("ChatroomDAO.getRoomIds", roomIds);
         return roomIds;
     }
 
