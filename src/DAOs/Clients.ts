@@ -15,7 +15,9 @@ export class ClientsDAO {
      * @returns boolean
      */
     isRegistered(identity: string): boolean {
-        return _.has(this.clients, identity);
+        const isRegistered = _.has(this.clients, identity);
+        console.log("ClientsDAO.isRegistered", identity, isRegistered);
+        return isRegistered;
     }
 
     /**
@@ -25,6 +27,7 @@ export class ClientsDAO {
      */
     addNewClient(identity: string, sock: Socket): void {
         this.clients[identity] = { socket: sock, roomId: `MainHall-s${process.env.SERVER_ID}` };
+        console.log("ClientsDAO.addNewClient", identity);
     }
 
     /**
@@ -35,6 +38,7 @@ export class ClientsDAO {
     removeClient(sock: Socket): boolean {
         const identity = _.findKey(this.clients, ['socket', sock])
         if (!identity) return false;
+        console.log("ClientsDAO.deleteClient", identity);
         return delete this.clients[identity];
     }
 
@@ -55,6 +59,7 @@ export class ClientsDAO {
     getClient(sock: Socket): LocalClient | undefined {
         const identity = _.findKey(this.clients, ['socket', sock])
         if (!identity) return;
+        console.log("ClientsDAO.getClient", identity);
         return this.clients[identity];
     }
 
@@ -64,6 +69,7 @@ export class ClientsDAO {
      * @returns client
      */
     getClientFromId(identity: string): LocalClient {
+        console.log("ClientsDAO.getClientFromId", identity);
         return this.clients[identity];
     }
 
@@ -73,6 +79,7 @@ export class ClientsDAO {
      * @returns list od clients
      */
     getClientsFromId(ids: string[]): LocalClient[] {
+        console.log("ClientsDAO.getClientsFromId", ids,  _.values(_.pick(this.clients, ids)));
         return _.values(_.pick(this.clients, ids));
     }
 
@@ -84,5 +91,6 @@ export class ClientsDAO {
      */
     joinChatroom(roomId: string, identity: string): void {
         this.clients[identity].roomId = roomId;
+        console.log("ClientsDAO.joinChatroom", identity);
     }
 }

@@ -13,12 +13,14 @@ export class ChatroomService {
         clients.forEach(client => {
             writeJSONtoSocket(client.socket, message);
         })
+        console.log("ChatroomService.broadcast done...");
     }
 
     static listChatrooms(sock: Socket): void {
         const rooms = ServiceLocator.chatroomDAO.getRoomIds()
         // TODO: get list of chatrooms from the system
         writeJSONtoSocket(sock, { type: "roomlist", rooms });
+        console.log("ChatroomService.listChatrooms done...");
     }
 
     static listParticipants(sock: Socket): boolean {
@@ -28,9 +30,10 @@ export class ChatroomService {
         writeJSONtoSocket(sock, {
             type: "roomcontents",
             roomid,
-            identities: chatroom.participants,
+            identities: Array.from(chatroom.participants),
             owner: chatroom.owner ?? ""
         });
+        console.log("ChatroomService.listParticipants done...");
         return true
     }
 
@@ -52,6 +55,7 @@ export class ChatroomService {
             ChatroomService.broadbast(previousRoomid, { type: "roomchange", identity: identity, former: previousRoomid, roomid });
             writeJSONtoSocket(sock, { type: "roomchange", identity: identity, former: previousRoomid, roomid });
         }
+        console.log("ChatroomService.createRoom done...");
         return true;
     }
 }

@@ -16,13 +16,16 @@ export class ClientService {
             writeJSONtoSocket(sock, { type: "newidentity", approved: "true" });
             // TODO: inform other servers
             ServiceLocator.chatroomDAO.addParticipantDefault(identity);
+
             // broadcast message
             ChatroomService.broadbast(`MainHall-s${process.env.SERVER_ID}`, { type: "roomchange", identity: identity, former: "", roomid: `MainHall-s${process.env.SERVER_ID}` });
         }
+        console.log("ClientService.registerClient done...");
         return true
     }
 
     static removeClient(sock: Socket): boolean {
+        console.log("ClientService.removeClient done...");
         return ServiceLocator.clientsDAO.removeClient(sock);
     }
 }
