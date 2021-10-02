@@ -35,7 +35,7 @@ export class ChatroomDAO {
         this.removeParticipant(previousRoomId, identity);
         this.chatrooms[newRoomId] = {
             owner: identity,
-            participants: new Set<string>(identity),
+            participants: new Set<string>().add(identity),
         };
     }
 
