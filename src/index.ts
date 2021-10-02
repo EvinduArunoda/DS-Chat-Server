@@ -27,8 +27,9 @@ server.on('connection', (sock: Socket) => {
             case "createroom":
                 return ChatroomHandler.createRoom(data, sock);
             case "joinroom":
-                // TODO: join room
-                return;
+                return ChatroomHandler.joinRoom(data, sock);
+            case "movejoin":
+                // TODO: move from another server
             case "deleteroom":
                 // TODO: delete room
                 return;

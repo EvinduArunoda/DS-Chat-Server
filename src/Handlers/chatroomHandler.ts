@@ -13,4 +13,8 @@ export class ChatroomHandler {
     static createRoom(data: any, sock: Socket): boolean {
         return ChatroomService.createRoom(data, sock);
     }
+
+    static joinRoom(data: any, sock: Socket): boolean {
+        return ChatroomService.joinRoom(data, sock);
+    }
 }

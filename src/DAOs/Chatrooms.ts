@@ -12,11 +12,11 @@ export class ChatroomDAO {
     }
 
     /**
-     * check if the roomid is unique
+     * check if the roomid is unique in local server
      * @param roomid client id
      * @returns boolean
      */
-    isRegistered(roomid: string): boolean {
+     isRegisteredLocally(roomid: string): boolean {
         const isRegistered = _.has(this.chatrooms, roomid)
         console.log("ChatroomDAO.isRegistered", roomid, isRegistered);
         return isRegistered;
