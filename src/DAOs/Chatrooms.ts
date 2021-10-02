@@ -23,7 +23,7 @@ export class ChatroomDAO {
     }
 
     isOwner(identity: string, roomid: string): boolean {
-        const isOwner = this.chatrooms[roomid].owner === identity;
+        const isOwner = this.chatrooms[roomid]?.owner === identity;
         console.log("ChatroomDAO.isOwner", identity, roomid, isOwner);
         return isOwner;
     }

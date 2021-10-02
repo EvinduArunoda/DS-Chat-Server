@@ -94,16 +94,23 @@ export class ChatroomService {
     }
 
     static deleteRoom(data: any, sock: Socket): boolean {
+        // TODO: need to fix this(delete chatroom)
+        console.log('here 1')
         const { roomid } = data;
         const identity = ServiceLocator.clientsDAO.getIdentity(sock);
         if (!identity) return false;
         // check if the user is the owner of the chatroom
         if (isValidIdentity(roomid) && ServiceLocator.chatroomDAO.isOwner(identity, roomid)) {
+            console.log('here 2')
             const participants = ServiceLocator.chatroomDAO.getParticipants(roomid);
+            const mainHallIdentiry = `MainHall-s${process.env.SERVER_ID}`;
             // move all participants to the MainHall
             for (const participant of participants) {
                 ServiceLocator.clientsDAO.moveToMainHall(participant);
+                // broadcast to previous room
+                ChatroomService.broadbast(roomid, { type: "roomchange", identity: participant, former: roomid, mainHallIdentiry });
             }
+            writeJSONtoSocket(sock, { type: "roomchange", identity: identity, former: roomid, mainHallIdentiry });
             // delete chatroom
             ServiceLocator.chatroomDAO.deleteChatroom(roomid);
         } else {
