@@ -99,10 +99,11 @@ export class ChatroomService {
         const { roomid } = data;
         const identity = ServiceLocator.clientsDAO.getIdentity(sock);
         if (!identity) return false;
-        // check if the user is the owner of the chatroom
-        if (isValidIdentity(roomid) && ServiceLocator.chatroomDAO.isOwner(identity, roomid)) {
-            console.log('here 2')
+        // check if the user is the owner of the chatroom && if the room is in the same server
+        if (isValidIdentity(roomid) && ServiceLocator.chatroomDAO.isOwner(identity, roomid) && ServiceLocator.chatroomDAO.isRegisteredLocally(roomid)) {
             const participants = ServiceLocator.chatroomDAO.getParticipants(roomid);
+            console.log('Participants', participants)
+
             const mainHallIdentiry = `MainHall-s${process.env.SERVER_ID}`;
             // move all participants to the MainHall
             for (const participant of participants) {
@@ -110,9 +111,11 @@ export class ChatroomService {
                 // broadcast to previous room
                 ChatroomService.broadbast(roomid, { type: "roomchange", identity: participant, former: roomid, mainHallIdentiry });
             }
-            writeJSONtoSocket(sock, { type: "roomchange", identity: identity, former: roomid, mainHallIdentiry });
             // delete chatroom
             ServiceLocator.chatroomDAO.deleteChatroom(roomid);
+        } else if (false){
+            // TODO : if chatroom is not local
+            return false;
         } else {
             return false;
         }
