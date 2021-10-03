@@ -1,5 +1,5 @@
 import { Socket } from "net";
-import { isValidIdentity, writeJSONtoSocket } from "../Utils/utils";
+import { getMainHallId, isValidIdentity, writeJSONtoSocket } from "../Utils/utils";
 import { ServiceLocator } from "../Utils/serviceLocator";
 import { ChatroomService } from "./chatroomService";
 
@@ -18,7 +18,7 @@ export class ClientService {
             ServiceLocator.chatroomDAO.addParticipantDefault(identity);
 
             // broadcast message
-            ChatroomService.broadbast(`MainHall-s${process.env.SERVER_ID}`, { type: "roomchange", identity: identity, former: "", roomid: `MainHall-s${process.env.SERVER_ID}` });
+            ChatroomService.broadbast(getMainHallId(), { type: "roomchange", identity: identity, former: "", roomid: getMainHallId() });
         }
         console.log("ClientService.registerClient done...");
         return true

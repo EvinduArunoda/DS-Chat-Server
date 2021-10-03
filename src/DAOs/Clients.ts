@@ -1,5 +1,5 @@
 import { Socket } from "net";
-import { isValidIdentity } from "../Utils/utils";
+import { getMainHallId, isValidIdentity } from "../Utils/utils";
 import { ClientInterface, LocalClient } from "../Interfaces/ClientInterface";
 import _ from "lodash";
 
@@ -26,7 +26,7 @@ export class ClientsDAO {
      * @param sock socket
      */
     addNewClient(identity: string, sock: Socket): void {
-        this.clients[identity] = { socket: sock, roomId: `MainHall-s${process.env.SERVER_ID}` };
+        this.clients[identity] = { socket: sock, roomId: getMainHallId() };
         console.log("ClientsDAO.addNewClient", identity);
     }
 
@@ -87,20 +87,10 @@ export class ClientsDAO {
      * join a chatroom
      * @param roomId roomid
      * @param identity identity
-     * @param isOwner is owner of the chatroom
      */
     joinChatroom(roomId: string, identity: string): void {
         this.clients[identity].roomId = roomId;
         console.log("ClientsDAO.joinChatroom", identity);
     }
-
-    /**
-     * move client to the mainHall
-     * @param identity identity
-     */
-    moveToMainHall(identity: string): void {
-        this.clients[identity].roomId = `MainHall-s${process.env.SERVER_ID}`
-    }
-
 
 }

@@ -13,3 +13,7 @@ export function isValidIdentity(identity: string): boolean {
     // It must be at least 3 characters and no more than 16 characters long.
     return /^[A-Za-z]{1}[A-Za-z0-9]{2,15}$/.test(identity)
 }
+
+export function getMainHallId(): string {
+    return `MainHall-s${process.env.SERVER_ID}`;
+}

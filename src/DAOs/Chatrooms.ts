@@ -1,11 +1,12 @@
 import _ from "lodash";
 import { ChatroomInterface, LocalChatroom } from "../Interfaces/ChatroomInterface";
+import { getMainHallId } from "../Utils/utils";
 
 export class ChatroomDAO {
     private chatrooms: ChatroomInterface = {};
 
     constructor() {
-        this.chatrooms[`MainHall-s${process.env.SERVER_ID}`] = {
+        this.chatrooms[getMainHallId()] = {
             owner: undefined,
             participants: new Set<string>(),
         };
@@ -78,8 +79,8 @@ export class ChatroomDAO {
      * @param participant identity
      */
     addParticipantDefault(participant: string): void {
-        console.log("ChatroomDAO.addParticipantDefault",  participant, "to", `MainHall-s${process.env.SERVER_ID}`);
-        this.chatrooms[`MainHall-s${process.env.SERVER_ID}`].participants.add(participant);
+        console.log("ChatroomDAO.addParticipantDefault",  participant, "to", getMainHallId());
+        this.chatrooms[getMainHallId()].participants.add(participant);
     }
 
     /**
