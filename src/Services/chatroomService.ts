@@ -77,6 +77,7 @@ export class ChatroomService {
         // if the room is in same server
         } else if (ServiceLocator.chatroomDAO.isRegisteredLocally(roomid)){
             ServiceLocator.clientsDAO.joinChatroom(roomid, identity);
+            ServiceLocator.chatroomDAO.changeChatroom(identity, previousRoomid, roomid);
             // broadcast to previous room
             ChatroomService.broadbast(previousRoomid, { type: "roomchange", identity, former: previousRoomid, roomid });
             // broadcast to new room
@@ -99,7 +100,7 @@ export class ChatroomService {
         if (!identity) return false;
         // check if the user is the owner of the chatroom
         if (!isValidIdentity(roomid) || !ServiceLocator.chatroomDAO.isOwner(identity, roomid)) {
-            writeJSONtoSocket(sock, {type : "deleteroom", roomid, approved : false});
+            writeJSONtoSocket(sock, {type : "deleteroom", roomid, approved : "false"});
         // if the room is in same server
         } else if (ServiceLocator.chatroomDAO.isRegisteredLocally(roomid)) {
             const participants = ServiceLocator.chatroomDAO.getParticipants(roomid);
@@ -108,6 +109,7 @@ export class ChatroomService {
             participants.forEach((participant: string) => {
                 // move client to the mainHall
                 ServiceLocator.clientsDAO.joinChatroom(mainHallId, participant);
+                ServiceLocator.chatroomDAO.changeChatroom(identity, roomid, mainHallId);
                 // broadcast to previous room
                 ChatroomService.broadbast(roomid, { type: "roomchange", identity: participant, former: roomid, roomid: mainHallId });
                 // broadcast to mainhall
@@ -116,7 +118,7 @@ export class ChatroomService {
             // delete chatroom
             ServiceLocator.chatroomDAO.deleteChatroom(roomid);
             // TODO: inform other servers
-            writeJSONtoSocket(sock, {type : "deleteroom", roomid, approved : true});
+            writeJSONtoSocket(sock, {type : "deleteroom", roomid, approved : "true"});
         }
         return true;
     }
