@@ -113,4 +113,14 @@ export class ChatroomDAO {
         console.log("ChatroomDAO.getParticipants",  roomId, participants);
         return participants;
     }
+
+    /**
+     * get participant between chatrooms
+     * @param roomId roomid
+     * @param participant identity
+     */
+    changeChatroom(participant: string, previousRoomid: string, roomId: string): void {
+        this.chatrooms[previousRoomid].participants.delete(participant);
+        this.chatrooms[roomId].participants.add(participant);
+    }
 }
