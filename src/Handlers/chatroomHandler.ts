@@ -21,4 +21,8 @@ export class ChatroomHandler {
     static deleteRoom(data:any, sock:Socket): boolean {
         return ChatroomService.deleteRoom(data, sock);    
     }
+
+    static moveJoin(data:any, sock:Socket): boolean {
+        return ChatroomService.moveJoin(data, sock);    
+    }
 }

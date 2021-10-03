@@ -2,6 +2,7 @@ import net, { Socket } from "net";
 import { readJSONfromBuffer } from "./Utils/utils";
 import { ClientHandler } from "./Handlers/clientHandler";
 import { ChatroomHandler } from "./Handlers/chatroomHandler";
+import { responseTypes } from "./Constants/responseTypes";
 
 // server id
 process.env['SERVER_ID'] = '1';
@@ -18,24 +19,24 @@ server.on('connection', (sock: Socket) => {
         console.log(data)
 
         switch (data.type) {
-            case "newidentity":
+            case responseTypes.NEW_IDENTITY:
                 return ClientHandler.newIdentity(data, sock);
-            case "list":
+            case responseTypes.LIST:
                 return ChatroomHandler.list(sock);
-            case "who":
+            case responseTypes.WHO:
                 return ChatroomHandler.who(sock);
-            case "createroom":
+            case responseTypes.CREATE_ROOM:
                 return ChatroomHandler.createRoom(data, sock);
-            case "joinroom":
+            case responseTypes.JOIN_ROOM:
                 return ChatroomHandler.joinRoom(data, sock);
-            case "movejoin":
-                // TODO: move from another server
-            case "deleteroom":
+            case responseTypes.MOVE_JOIN:
+                return ChatroomHandler.moveJoin(data, sock);
+            case responseTypes.DELETE_ROOM:
                 return ChatroomHandler.deleteRoom(data, sock);
-            case "message":
-                // TODO: create room
+            case responseTypes.MESSAGE:
+                // TODO: message
                 return;
-            case "quit":
+            case responseTypes.QUIT:
                 // TODO: disconnect
                 return;
             default:
