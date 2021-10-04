@@ -87,8 +87,6 @@ export class ChatroomService {
             ChatroomService.broadbast(former, { type: responseTypes.ROOM_CHANGE, identity, former, roomid });
             // broadcast to new room
             ChatroomService.broadbast(roomid, { type: responseTypes.ROOM_CHANGE, identity, former, roomid });
-            // send to client itself
-            writeJSONtoSocket(sock, { type: responseTypes.ROOM_CHANGE, identity, former, roomid });
         } else {
             // TODO: check if the room is in another server
             // remove from previous room

@@ -56,7 +56,7 @@ export class ClientService {
         // remove from client list
         ServiceLocator.clientsDAO.removeClient(sock);
         // TODO: inform other servers
-        sock.destroy();
+        // TODO: delete connection
         console.log("ClientService.removeClient done...");
         return true;
     }
