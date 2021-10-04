@@ -25,4 +25,8 @@ export class ChatroomHandler {
     static moveJoin(data:any, sock:Socket): boolean {
         return ChatroomService.moveJoin(data, sock);    
     }
+
+    static message(data:any, sock:Socket): boolean {
+        return ChatroomService.message(data, sock);    
+    }
 }

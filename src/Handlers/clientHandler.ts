@@ -7,7 +7,6 @@ export class ClientHandler {
     }
 
     static disconnect(sock: Socket): boolean {
-        // TODO: remove chatrooms, leave from chatroom etc..
         return ClientService.removeClient(sock);
     }
 }

@@ -34,11 +34,9 @@ server.on('connection', (sock: Socket) => {
             case responseTypes.DELETE_ROOM:
                 return ChatroomHandler.deleteRoom(data, sock);
             case responseTypes.MESSAGE:
-                // TODO: message
-                return;
+                return ChatroomHandler.message(data, sock);
             case responseTypes.QUIT:
-                // TODO: disconnect
-                return;
+                return ClientHandler.disconnect(sock);
             default:
                 break;
         }

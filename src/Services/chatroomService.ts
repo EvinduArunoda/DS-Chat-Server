@@ -75,8 +75,8 @@ export class ChatroomService {
         // if the client is not the owner of another chat room
         if (!isValidIdentity(roomid) || ServiceLocator.chatroomDAO.isOwner(identity, former)) {
             writeJSONtoSocket(sock, { type: responseTypes.ROOM_CHANGE, identity, former: roomid, roomid });
-        // if the room is in same server
-        } else if (ServiceLocator.chatroomDAO.isRegisteredLocally(roomid)){
+            // if the room is in same server
+        } else if (ServiceLocator.chatroomDAO.isRegisteredLocally(roomid)) {
             ServiceLocator.clientsDAO.joinChatroom(roomid, identity);
             ServiceLocator.chatroomDAO.changeChatroom(identity, former, roomid);
             // broadcast to previous room
@@ -87,7 +87,8 @@ export class ChatroomService {
             writeJSONtoSocket(sock, { type: responseTypes.ROOM_CHANGE, identity, former, roomid });
         } else {
             // TODO: check if the room is in another server
-            // TODO: remove from previous room
+            // remove from previous room
+            ServiceLocator.chatroomDAO.removeParticipant(former, identity);
             // broadcast to previous room
             ChatroomService.broadbast(former, { type: responseTypes.ROOM_CHANGE, identity, former, roomid });
             // TODO: add to new server room
@@ -127,8 +128,8 @@ export class ChatroomService {
         if (!identity) return false;
         // check if the user is the owner of the chatroom
         if (!isValidIdentity(roomid) || !ServiceLocator.chatroomDAO.isOwner(identity, roomid)) {
-            writeJSONtoSocket(sock, {type : responseTypes.DELETE_ROOM, roomid, approved : "false"});
-        // if the room is in same server
+            writeJSONtoSocket(sock, { type: responseTypes.DELETE_ROOM, roomid, approved: "false" });
+            // if the room is in same server
         } else if (ServiceLocator.chatroomDAO.isRegisteredLocally(roomid)) {
             const participants = ServiceLocator.chatroomDAO.getParticipants(roomid);
             const mainHallId = getMainHallId();
@@ -145,8 +146,19 @@ export class ChatroomService {
             // delete chatroom
             ServiceLocator.chatroomDAO.deleteChatroom(roomid);
             // TODO: inform other servers
-            writeJSONtoSocket(sock, {type : responseTypes.DELETE_ROOM, roomid, approved : "true"});
+            writeJSONtoSocket(sock, { type: responseTypes.DELETE_ROOM, roomid, approved: "true" });
         }
         return true;
     }
+
+    static message(data: any, sock: Socket): boolean {
+        const { content } = data;
+        const identity = ServiceLocator.clientsDAO.getIdentity(sock);
+        const roomid = ServiceLocator.clientsDAO.getClient(sock)?.roomId;
+        if (!content || !roomid || !identity) return false;
+        // broadcast to all members in chatroom
+        ChatroomService.broadbast(roomid, { type: responseTypes.MESSAGE, identity, content })
+        return true;
+    }
+    
 }
