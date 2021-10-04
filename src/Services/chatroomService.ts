@@ -17,8 +17,15 @@ export class ChatroomService {
         console.log("ChatroomService.broadcast done...");
     }
 
-    static broadcastExceptSender():void {
-
+    static broadcastExceptSender(roomId: string, message: any, senderId: string):void {
+        const participants = ServiceLocator.chatroomDAO.getParticipants(roomId);
+        // get sockets
+        const clients = ServiceLocator.clientsDAO.getClientsFromId(participants.filter(el => el !== senderId))
+        // broeadcast
+        clients.forEach(client => {
+            writeJSONtoSocket(client.socket, message);
+        })
+        console.log("ChatroomService.broadcast done...");
     }
 
     static listChatrooms(sock: Socket): void {
@@ -159,7 +166,7 @@ export class ChatroomService {
         const roomid = ServiceLocator.clientsDAO.getClient(sock)?.roomId;
         if (!content || !roomid || !identity) return false;
         // broadcast to all members in chatroom
-        ChatroomService.broadbast(roomid, { type: responseTypes.MESSAGE, identity, content })
+        ChatroomService.broadcastExceptSender(roomid, { type: responseTypes.MESSAGE, identity, content }, identity)
         return true;
     }
     
