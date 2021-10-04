@@ -141,7 +141,7 @@ export class ChatroomService {
             participants.forEach((participant: string) => {
                 // move client to the mainHall
                 ServiceLocator.clientsDAO.joinChatroom(mainHallId, participant);
-                ServiceLocator.chatroomDAO.changeChatroom(identity, roomid, mainHallId);
+                ServiceLocator.chatroomDAO.changeChatroom(participant, roomid, mainHallId);
                 // broadcast to previous room
                 ChatroomService.broadbast(roomid, { type: responseTypes.ROOM_CHANGE, identity: participant, former: roomid, roomid: mainHallId });
                 // broadcast to mainhall
