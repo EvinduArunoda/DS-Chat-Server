@@ -36,7 +36,7 @@ server.on('connection', (sock: Socket) => {
             case responseTypes.MESSAGE:
                 return ChatroomHandler.message(data, sock);
             case responseTypes.QUIT:
-                return ClientHandler.disconnect(sock);
+                return ClientHandler.disconnect(sock, false);
             default:
                 break;
         }
@@ -49,7 +49,7 @@ server.on('connection', (sock: Socket) => {
 
     // client closes with or without error
     sock.on('close', function (isError: boolean) {
-        ClientHandler.disconnect(sock);
+        ClientHandler.disconnect(sock, true);
     });
 });
 

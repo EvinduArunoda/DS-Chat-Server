@@ -6,7 +6,7 @@ export class ClientHandler {
         return ClientService.registerClient(data, sock);
     }
 
-    static disconnect(sock: Socket): boolean {
-        return ClientService.removeClient(sock);
+    static disconnect(sock: Socket, forced: boolean): boolean {
+        return ClientService.removeClient(sock, forced);
     }
 }
