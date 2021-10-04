@@ -19,7 +19,7 @@ export class ClientService {
             ServiceLocator.chatroomDAO.addParticipantDefault(identity);
 
             // broadcast message
-            ChatroomService.broadbast(getMainHallId(), { type: responseTypes.ROOM_CHANGE, identity: identity, former: "", roomid: getMainHallId() });
+            ChatroomService.broadcast(getMainHallId(), { type: responseTypes.ROOM_CHANGE, identity: identity, former: "", roomid: getMainHallId() });
         }
         console.log("ClientService.registerClient done...");
         return true
@@ -40,9 +40,9 @@ export class ClientService {
                 ServiceLocator.clientsDAO.joinChatroom(mainHallId, participant);
                 ServiceLocator.chatroomDAO.changeChatroom(identity, roomid, mainHallId);
                 // broadcast to previous room
-                ChatroomService.broadbast(roomid, { type: responseTypes.ROOM_CHANGE, identity: participant, former: "", roomid: mainHallId });
+                ChatroomService.broadcast(roomid, { type: responseTypes.ROOM_CHANGE, identity: participant, former: "", roomid: mainHallId });
                 // broadcast to mainhall
-                ChatroomService.broadbast(mainHallId, { type: responseTypes.ROOM_CHANGE, identity: participant, "": roomid, roomid: mainHallId });
+                ChatroomService.broadcast(mainHallId, { type: responseTypes.ROOM_CHANGE, identity: participant, former: "", roomid: mainHallId });
             })
             // delete chatroom
             ServiceLocator.chatroomDAO.deleteChatroom(roomid);
@@ -51,12 +51,13 @@ export class ClientService {
             // leave chatroom
             ServiceLocator.chatroomDAO.removeParticipant(roomid, identity);
             // broadcast to previous room
-            ChatroomService.broadbast(roomid, { type: responseTypes.ROOM_CHANGE, identity, former: roomid, roomid: "" });
+            ChatroomService.broadcast(roomid, { type: responseTypes.ROOM_CHANGE, identity, former: roomid, roomid: "" });
         }
         // remove from client list
         ServiceLocator.clientsDAO.removeClient(sock);
         // TODO: inform other servers
-        // TODO: delete connection
+        // delete connection
+        writeJSONtoSocket(sock, { type: responseTypes.ROOM_CHANGE, identity: identity, former: roomid, roomid: "" });
         console.log("ClientService.removeClient done...");
         return true;
     }

@@ -6,7 +6,7 @@ import { responseTypes } from "../Constants/responseTypes";
 export class ChatroomService {
     private constructor() { }
 
-    static broadbast(roomId: string, message: any): void {
+    static broadcast(roomId: string, message: any): void {
         const participants = ServiceLocator.chatroomDAO.getParticipants(roomId);
         // get sockets
         const clients = ServiceLocator.clientsDAO.getClientsFromId(participants)
@@ -70,7 +70,7 @@ export class ChatroomService {
             ServiceLocator.clientsDAO.joinChatroom(roomid, identity);
             writeJSONtoSocket(sock, { type: responseTypes.CREATE_ROOM, roomid, approved: "true" });
             // broadcast to previous room
-            ChatroomService.broadbast(former, { type: responseTypes.ROOM_CHANGE, identity, former, roomid });
+            ChatroomService.broadcast(former, { type: responseTypes.ROOM_CHANGE, identity, former, roomid });
             // send to client itself
             writeJSONtoSocket(sock, { type: responseTypes.ROOM_CHANGE, identity, former, roomid });
         }
@@ -91,15 +91,15 @@ export class ChatroomService {
             ServiceLocator.clientsDAO.joinChatroom(roomid, identity);
             ServiceLocator.chatroomDAO.changeChatroom(identity, former, roomid);
             // broadcast to previous room
-            ChatroomService.broadbast(former, { type: responseTypes.ROOM_CHANGE, identity, former, roomid });
+            ChatroomService.broadcast(former, { type: responseTypes.ROOM_CHANGE, identity, former, roomid });
             // broadcast to new room
-            ChatroomService.broadbast(roomid, { type: responseTypes.ROOM_CHANGE, identity, former, roomid });
+            ChatroomService.broadcast(roomid, { type: responseTypes.ROOM_CHANGE, identity, former, roomid });
         } else {
             // TODO: check if the room is in another server
             // remove from previous room
             ServiceLocator.chatroomDAO.removeParticipant(former, identity);
             // broadcast to previous room
-            ChatroomService.broadbast(former, { type: responseTypes.ROOM_CHANGE, identity, former, roomid });
+            ChatroomService.broadcast(former, { type: responseTypes.ROOM_CHANGE, identity, former, roomid });
             // TODO: add to new server room
         }
         return true;
@@ -116,7 +116,7 @@ export class ChatroomService {
             const mainHallId = getMainHallId();
             ServiceLocator.clientsDAO.joinChatroom(mainHallId, identity);
             // broadcast to mainhall
-            ChatroomService.broadbast(mainHallId, { type: responseTypes.ROOM_CHANGE, identity, former, roomid: mainHallId });
+            ChatroomService.broadcast(mainHallId, { type: responseTypes.ROOM_CHANGE, identity, former, roomid: mainHallId });
             // send to client itself
             writeJSONtoSocket(sock, { type: responseTypes.ROOM_CHANGE, identity, former, roomid: mainHallId });
         // if the room is available
@@ -124,7 +124,7 @@ export class ChatroomService {
             ServiceLocator.clientsDAO.joinChatroom(roomid, identity);
             ServiceLocator.chatroomDAO.changeChatroom(identity, former, roomid);
             // broadcast to new room
-            ChatroomService.broadbast(roomid, { type: responseTypes.ROOM_CHANGE, identity, former, roomid });
+            ChatroomService.broadcast(roomid, { type: responseTypes.ROOM_CHANGE, identity, former, roomid });
             // send to client itself
             writeJSONtoSocket(sock, { type: responseTypes.ROOM_CHANGE, identity, former, roomid });
         }
@@ -148,9 +148,9 @@ export class ChatroomService {
                 ServiceLocator.clientsDAO.joinChatroom(mainHallId, participant);
                 ServiceLocator.chatroomDAO.changeChatroom(participant, roomid, mainHallId);
                 // broadcast to previous room
-                ChatroomService.broadbast(roomid, { type: responseTypes.ROOM_CHANGE, identity: participant, former: roomid, roomid: mainHallId });
+                ChatroomService.broadcast(roomid, { type: responseTypes.ROOM_CHANGE, identity: participant, former: roomid, roomid: mainHallId });
                 // broadcast to mainhall
-                ChatroomService.broadbast(mainHallId, { type: responseTypes.ROOM_CHANGE, identity: participant, former: roomid, roomid: mainHallId });
+                ChatroomService.broadcast(mainHallId, { type: responseTypes.ROOM_CHANGE, identity: participant, former: roomid, roomid: mainHallId });
             })
             // delete chatroom
             ServiceLocator.chatroomDAO.deleteChatroom(roomid);
