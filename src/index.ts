@@ -49,7 +49,9 @@ server.on('connection', (sock: Socket) => {
 
     // client closes with or without error
     sock.on('close', function (isError: boolean) {
-        ClientHandler.disconnect(sock);
+        if (isError) {
+            ClientHandler.disconnect(sock);
+        }
     });
 });
 

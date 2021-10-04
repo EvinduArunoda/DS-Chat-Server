@@ -26,6 +26,7 @@ export class ClientService {
     }
 
     static removeClient(sock: Socket): boolean {
+        console.log("Quit")
         const roomid = ServiceLocator.clientsDAO.getClient(sock)?.roomId;
         const identity = ServiceLocator.clientsDAO.getIdentity(sock);
         if (!roomid || !identity) return false;
