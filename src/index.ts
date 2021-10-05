@@ -34,7 +34,7 @@ server.on('connection', (sock: Socket) => {
             case responseTypes.MESSAGE:
                 return ServiceLocator.mainHandler.getChatroomHandler().message(data, sock);
             case responseTypes.QUIT:
-                return ServiceLocator.mainHandler.getClientHandler().disconnect(sock);
+                return ServiceLocator.mainHandler.getClientHandler().disconnect(sock, false);
             default:
                 break;
         }
@@ -48,7 +48,7 @@ server.on('connection', (sock: Socket) => {
     // client closes with or without error
     sock.on('close', function (isError: boolean) {
         if (isError) {
-            ServiceLocator.mainHandler.getClientHandler().disconnect(sock);
+            ServiceLocator.mainHandler.getClientHandler().disconnect(sock, true);
         }
     });
 });
