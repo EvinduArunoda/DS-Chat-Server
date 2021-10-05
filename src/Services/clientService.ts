@@ -25,8 +25,7 @@ export class ClientService {
         return true
     }
 
-    static removeClient(sock: Socket): boolean {
-        console.log("Quit")
+    static removeClient(sock: Socket, forced: boolean): boolean {
         const roomid = ServiceLocator.clientsDAO.getClient(sock)?.roomId;
         const identity = ServiceLocator.clientsDAO.getIdentity(sock);
         if (!roomid || !identity) return false;
@@ -57,8 +56,10 @@ export class ClientService {
         // remove from client list
         ServiceLocator.clientsDAO.removeClient(sock);
         // TODO: inform other servers
-        // delete connection
-        writeJSONtoSocket(sock, { type: responseTypes.ROOM_CHANGE, identity: identity, former: roomid, roomid: "" });
+        if (!forced) {
+            // delete connection
+            writeJSONtoSocket(sock, { type: responseTypes.ROOM_CHANGE, identity: identity, former: roomid, roomid: "" });
+        }
         console.log("ClientService.removeClient done...");
         return true;
     }
