@@ -1,9 +1,7 @@
 import net, { Socket } from "net";
 import { readJSONfromBuffer } from "./Utils/utils";
-import { ClientHandler } from "./Handlers/clientHandler";
-import { ChatroomHandler } from "./Handlers/chatroomHandler";
 import { responseTypes } from "./Constants/responseTypes";
-
+import { ServiceLocator } from "./Utils/serviceLocator";
 // server id
 process.env['SERVER_ID'] = '1';
 
@@ -20,23 +18,23 @@ server.on('connection', (sock: Socket) => {
 
         switch (data.type) {
             case responseTypes.NEW_IDENTITY:
-                return ClientHandler.newIdentity(data, sock);
+                return ServiceLocator.mainHandler.getClientHandler().newIdentity(data, sock);
             case responseTypes.LIST:
-                return ChatroomHandler.list(sock);
+                return ServiceLocator.mainHandler.getChatroomHandler().list(sock);
             case responseTypes.WHO:
-                return ChatroomHandler.who(sock);
+                return ServiceLocator.mainHandler.getChatroomHandler().who(sock);
             case responseTypes.CREATE_ROOM:
-                return ChatroomHandler.createRoom(data, sock);
+                return ServiceLocator.mainHandler.getChatroomHandler().createRoom(data, sock);
             case responseTypes.JOIN_ROOM:
-                return ChatroomHandler.joinRoom(data, sock);
+                return ServiceLocator.mainHandler.getChatroomHandler().joinRoom(data, sock);
             case responseTypes.MOVE_JOIN:
-                return ChatroomHandler.moveJoin(data, sock);
+                return ServiceLocator.mainHandler.getChatroomHandler().moveJoin(data, sock);
             case responseTypes.DELETE_ROOM:
-                return ChatroomHandler.deleteRoom(data, sock);
+                return ServiceLocator.mainHandler.getChatroomHandler().deleteRoom(data, sock);
             case responseTypes.MESSAGE:
-                return ChatroomHandler.message(data, sock);
+                return ServiceLocator.mainHandler.getChatroomHandler().message(data, sock);
             case responseTypes.QUIT:
-                return ClientHandler.disconnect(sock);
+                return ServiceLocator.mainHandler.getClientHandler().disconnect(sock);
             default:
                 break;
         }
@@ -50,7 +48,7 @@ server.on('connection', (sock: Socket) => {
     // client closes with or without error
     sock.on('close', function (isError: boolean) {
         if (isError) {
-            ClientHandler.disconnect(sock);
+            ServiceLocator.mainHandler.getClientHandler().disconnect(sock);
         }
     });
 });
