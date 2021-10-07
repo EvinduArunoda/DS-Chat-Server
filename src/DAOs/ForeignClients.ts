@@ -10,20 +10,20 @@ export class ForeignClientsDAO {
     /**
      * add new client
      * @param identity client id
-     * @param serverId server id
+     * @param serverid server id
      */
-    addNewClient(serverID: string, identity: string): void {
-        this.clients[serverID].add(identity);
-        console.log("ForeignClientsDAO.addNewClient", serverID, identity);
+    addNewClient(serverid: string, identity: string): void {
+        this.clients[serverid].add(identity);
+        console.log("ForeignClientsDAO.addNewClient", serverid, identity);
     }
 
     /**
      * remove client
      * @param identity client id
-     * @param serverId server id
+     * @param serverid server id
      */
-    removeClient(serverID: string, identity: string): void {
-        this.clients[serverID].delete(identity)
-        console.log("ForeignClientsDAO.deleteClient", serverID, identity);
+    removeClient(serverid: string, identity: string): void {
+        this.clients[serverid].delete(identity)
+        console.log("ForeignClientsDAO.deleteClient", serverid, identity);
     }
 }

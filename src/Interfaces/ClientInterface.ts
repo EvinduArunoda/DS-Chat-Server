@@ -6,5 +6,5 @@ export interface ClientInterface {
 
 export interface LocalClient {
     socket: Socket;
-    roomId: string;
+    roomid: string;
 }

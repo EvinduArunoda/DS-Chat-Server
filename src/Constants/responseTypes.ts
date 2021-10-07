@@ -12,6 +12,6 @@ export const responseTypes = {
     JOIN_ROOM: "joinroom",
     MOVE_JOIN: "movejoin",
     MESSAGE: "message",
+    ROUTE: "route",
     QUIT: "quit"
-    
 }

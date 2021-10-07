@@ -26,7 +26,7 @@ export class ClientsDAO {
      * @param sock socket
      */
     addNewClient(identity: string, sock: Socket): void {
-        this.clients[identity] = { socket: sock, roomId: getMainHallId() };
+        this.clients[identity] = { socket: sock, roomid: getMainHallId() };
         console.log("ClientsDAO.addNewClient", identity);
     }
 
@@ -85,11 +85,11 @@ export class ClientsDAO {
 
     /**
      * join a chatroom
-     * @param roomId roomid
+     * @param roomid roomid
      * @param identity identity
      */
-    joinChatroom(roomId: string, identity: string): void {
-        this.clients[identity].roomId = roomId;
+    joinChatroom(roomid: string, identity: string): void {
+        this.clients[identity].roomid = roomid;
         console.log("ClientsDAO.joinChatroom", identity);
     }
 

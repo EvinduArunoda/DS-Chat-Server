@@ -1,12 +1,12 @@
 import _ from "lodash";
-import { serverList } from "../Constants/serverList";
+import { ServerList } from "../Constants/servers";
 import { ForeignChatroomInterface } from "../Interfaces/ForeignChatroomInterface";
 
 export class ForeignChatroomsDAO {
     private chatrooms: ForeignChatroomInterface = {};
 
     constructor() {
-        _.keys(serverList).forEach((serverName: string) => {
+        new ServerList().getServerIds().forEach((serverName: string) => {
             this.chatrooms[serverName] = new Set<string>()
         })
     }
@@ -16,9 +16,9 @@ export class ForeignChatroomsDAO {
      * @returns roomids
      */
     getRoomIds(): string[] {
-        const roomIds = _.flatten(_.map(_.values(this.chatrooms), (set) => Array.from(set)));
-        console.log("ForeignChatroomsDAO.getRoomIds", roomIds);
-        return roomIds;
+        const roomids = _.flatten(_.map(_.values(this.chatrooms), (set) => Array.from(set)));
+        console.log("ForeignChatroomsDAO.getRoomIds", roomids);
+        return roomids;
     }
 
     // called by the leader node
@@ -26,21 +26,21 @@ export class ForeignChatroomsDAO {
     /**
      * add new chatroom
      * @param roomid chatroom id
-     * @param serverId server id
+     * @param serverid server id
      */
-    addNewChatroom(serverID: string, roomid: string): void {
-        this.chatrooms[serverID].add(roomid);
-        console.log("ForeignChatroomsDAO.addNewChatroom", serverID, roomid);
+    addNewChatroom(serverid: string, roomid: string): void {
+        this.chatrooms[serverid].add(roomid);
+        console.log("ForeignChatroomsDAO.addNewChatroom", serverid, roomid);
     }
 
     /**
      * remove chatroom
      * @param roomid chatroom id
-     * @param serverId server id
+     * @param serverid server id
      */
-    removeChatroom(serverID: string, roomid: string): void {
-        this.chatrooms[serverID].delete(roomid)
-        console.log("ForeignChatroomsDAO.deleteChatroom", serverID, roomid);
+    removeChatroom(serverid: string, roomid: string): void {
+        this.chatrooms[serverid].delete(roomid)
+        console.log("ForeignChatroomsDAO.deleteChatroom", serverid, roomid);
     }
 
 }

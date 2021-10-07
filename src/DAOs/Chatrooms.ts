@@ -47,11 +47,11 @@ export class ChatroomDAO {
 
     /**
      * delete chstroom from roomid
-     * @param roomId roomid
+     * @param roomid roomid
      */
-    deleteChatroom(roomId: string): void {
-        console.log("ChatroomDAO.deleteChatroom", roomId);
-        delete this.chatrooms[roomId];
+    deleteChatroom(roomid: string): void {
+        console.log("ChatroomDAO.deleteChatroom", roomid);
+        delete this.chatrooms[roomid];
     }
 
     /**
@@ -59,19 +59,19 @@ export class ChatroomDAO {
      * @returns roomids
      */
     getRoomIds(): string[] {
-        const roomIds = _.keys(this.chatrooms);
-        console.log("ChatroomDAO.getRoomIds", roomIds);
-        return roomIds;
+        const roomids = _.keys(this.chatrooms);
+        console.log("ChatroomDAO.getRoomIds", roomids);
+        return roomids;
     }
 
     /**
      * get chatroom from roomid
-     * @param roomId roomid
+     * @param roomid roomid
      * @returns chatroom
      */
-    getRoom(roomId: string): LocalChatroom {
-        console.log("ChatroomDAO.getRoom", roomId);
-        return this.chatrooms[roomId]
+    getRoom(roomid: string): LocalChatroom {
+        console.log("ChatroomDAO.getRoom", roomid);
+        return this.chatrooms[roomid]
     }
 
     /**
@@ -85,42 +85,42 @@ export class ChatroomDAO {
 
     /**
      * add participant to chatroom
-     * @param roomId roomid
+     * @param roomid roomid
      * @param participant identity 
      */
-    addParticipant(roomId: string, participant: string): void {
-        console.log("ChatroomDAO.addParticipant", participant, "to", roomId);
-        this.chatrooms[roomId].participants.add(participant);
+    addParticipant(roomid: string, participant: string): void {
+        console.log("ChatroomDAO.addParticipant", participant, "to", roomid);
+        this.chatrooms[roomid].participants.add(participant);
     }
 
     /**
      * remove a participant from chatroom
-     * @param roomId roomid
+     * @param roomid roomid
      * @param participant identity
      */
-    removeParticipant(roomId: string, participant: string): void {
-        console.log("ChatroomDAO.removeParticipant", participant, "from", roomId);
-        this.chatrooms[roomId].participants.delete(participant);
+    removeParticipant(roomid: string, participant: string): void {
+        console.log("ChatroomDAO.removeParticipant", participant, "from", roomid);
+        this.chatrooms[roomid].participants.delete(participant);
     }
 
     /**
      * get participant list from roomid
-     * @param roomId roomid
+     * @param roomid roomid
      * @returns list of identities
      */
-    getParticipants(roomId: string): string[] {
-        const participants = Array.from(this.chatrooms[roomId].participants);
-        console.log("ChatroomDAO.getParticipants", roomId, participants);
+    getParticipants(roomid: string): string[] {
+        const participants = Array.from(this.chatrooms[roomid].participants);
+        console.log("ChatroomDAO.getParticipants", roomid, participants);
         return participants;
     }
 
     /**
      * get participant between chatrooms
-     * @param roomId roomid
+     * @param roomid roomid
      * @param participant identity
      */
-    changeChatroom(participant: string, previousRoomid: string, roomId: string): void {
+    changeChatroom(participant: string, previousRoomid: string, roomid: string): void {
         this.chatrooms[previousRoomid].participants.delete(participant);
-        this.chatrooms[roomId].participants.add(participant);
+        this.chatrooms[roomid].participants.add(participant);
     }
 }

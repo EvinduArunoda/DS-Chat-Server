@@ -2,12 +2,14 @@ import { getMainHallId, isValidIdentity, writeJSONtoSocket } from "../Utils/util
 import { ServiceLocator } from "../Utils/serviceLocator";
 import { Socket } from "net";
 import { responseTypes } from "../Constants/responseTypes";
+import { ForeignServerService } from "./foreignServerService";
+import { ServerList } from "../Constants/servers";
 
 export class ChatroomService {
     private constructor() { }
 
-    static broadcast(roomId: string, message: any): void {
-        const participants = ServiceLocator.chatroomDAO.getParticipants(roomId);
+    static broadcast(roomid: string, message: any): void {
+        const participants = ServiceLocator.chatroomDAO.getParticipants(roomid);
         // get sockets
         const clients = ServiceLocator.clientsDAO.getClientsFromId(participants)
         // broeadcast
@@ -17,8 +19,8 @@ export class ChatroomService {
         console.log("ChatroomService.broadcast done...");
     }
 
-    static broadcastExceptSender(roomId: string, message: any, senderId: string):void {
-        const participants = ServiceLocator.chatroomDAO.getParticipants(roomId);
+    static broadcastExceptSender(roomid: string, message: any, senderId: string):void {
+        const participants = ServiceLocator.chatroomDAO.getParticipants(roomid);
         // get sockets
         const clients = ServiceLocator.clientsDAO.getClientsFromId(participants.filter(el => el !== senderId))
         // broeadcast
@@ -42,7 +44,7 @@ export class ChatroomService {
     }
 
     static listParticipants(sock: Socket): boolean {
-        const roomid = ServiceLocator.clientsDAO.getClient(sock)?.roomId;
+        const roomid = ServiceLocator.clientsDAO.getClient(sock)?.roomid;
         if (!roomid) return false;
         const chatroom = ServiceLocator.chatroomDAO.getRoom(roomid);
         writeJSONtoSocket(sock, {
@@ -57,16 +59,18 @@ export class ChatroomService {
 
     static createRoom(data: any, sock: Socket): boolean {
         const { roomid } = data;
-        const former = ServiceLocator.clientsDAO.getClient(sock)?.roomId;
+        const former = ServiceLocator.clientsDAO.getClient(sock)?.roomid;
         const identity = ServiceLocator.clientsDAO.getIdentity(sock)
         if (!former || !identity) return false;
         // if the roomid is unique or if the client is not the owner of another chat room
         if (!isValidIdentity(roomid) || ServiceLocator.chatroomDAO.isOwner(identity, former) || ServiceLocator.chatroomDAO.isRegistered(roomid)) {
             writeJSONtoSocket(sock, { type: responseTypes.CREATE_ROOM, roomid, approved: "false" });
-        } else {
-            // TODO: Check id in other servers
+        // check if id is unique and inform other servers
+        } else if (ForeignServerService.isChatroomRegistered(roomid)){
+            writeJSONtoSocket(sock, { type: responseTypes.CREATE_ROOM, roomid, approved: "false" });
+        } 
+        else {
             ServiceLocator.chatroomDAO.addNewChatroom(former, roomid, identity);
-            // TODO: inform other servers
             ServiceLocator.clientsDAO.joinChatroom(roomid, identity);
             writeJSONtoSocket(sock, { type: responseTypes.CREATE_ROOM, roomid, approved: "true" });
             // broadcast to previous room
@@ -80,13 +84,13 @@ export class ChatroomService {
 
     static joinRoom(data: any, sock: Socket): boolean {
         const { roomid } = data;
-        const former = ServiceLocator.clientsDAO.getClient(sock)?.roomId;
+        const former = ServiceLocator.clientsDAO.getClient(sock)?.roomid;
         const identity = ServiceLocator.clientsDAO.getIdentity(sock)
         if (!former || !identity) return false;
         // if the client is not the owner of another chat room
         if (!isValidIdentity(roomid) || ServiceLocator.chatroomDAO.isOwner(identity, former)) {
             writeJSONtoSocket(sock, { type: responseTypes.ROOM_CHANGE, identity, former: former, roomid: former });
-            // if the room is in same server
+        // if the room is in same server
         } else if (ServiceLocator.chatroomDAO.isRegistered(roomid)) {
             ServiceLocator.clientsDAO.joinChatroom(roomid, identity);
             ServiceLocator.chatroomDAO.changeChatroom(identity, former, roomid);
@@ -95,12 +99,17 @@ export class ChatroomService {
             // broadcast to new room
             ChatroomService.broadcast(roomid, { type: responseTypes.ROOM_CHANGE, identity, former, roomid });
         } else {
-            // TODO: check if the room is in another server
-            // remove from previous room
-            ServiceLocator.chatroomDAO.removeParticipant(former, identity);
-            // broadcast to previous room
-            ChatroomService.broadcast(former, { type: responseTypes.ROOM_CHANGE, identity, former, roomid });
-            // TODO: add to new server room
+            const serverid = ForeignServerService.getChatroomRegisteredServer(roomid);
+            // check if the room is in another server
+            if (!!serverid) {
+                // remove from previous room
+                ServiceLocator.chatroomDAO.removeParticipant(former, identity);
+                // broadcast to previous room
+                ChatroomService.broadcast(former, { type: responseTypes.ROOM_CHANGE, identity, former, roomid });
+                // redirect to new server room
+                const {host, port} = new ServerList().getServer(serverid);
+                writeJSONtoSocket(sock, {type: responseTypes.ROUTE, roomid})
+            }
         }
         return true;
     }
@@ -154,7 +163,8 @@ export class ChatroomService {
             })
             // delete chatroom
             ServiceLocator.chatroomDAO.deleteChatroom(roomid);
-            // TODO: inform other servers
+            // inform other servers
+            ForeignServerService.informChatroomDeletion(roomid);
             writeJSONtoSocket(sock, { type: responseTypes.DELETE_ROOM, roomid, approved: "true" });
         }
         return true;
@@ -163,7 +173,7 @@ export class ChatroomService {
     static message(data: any, sock: Socket): boolean {
         const { content } = data;
         const identity = ServiceLocator.clientsDAO.getIdentity(sock);
-        const roomid = ServiceLocator.clientsDAO.getClient(sock)?.roomId;
+        const roomid = ServiceLocator.clientsDAO.getClient(sock)?.roomid;
         if (!content || !roomid || !identity) return false;
         // broadcast to all members in chatroom
         ChatroomService.broadcastExceptSender(roomid, { type: responseTypes.MESSAGE, identity, content }, identity)
