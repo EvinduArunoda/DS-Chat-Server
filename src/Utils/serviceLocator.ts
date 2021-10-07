@@ -4,6 +4,7 @@ import { ForeignChatroomsDAO } from "../DAOs/ForeignChatrooms";
 import { ChatroomHandler } from "../Handlers/chatroomHandler";
 import { ClientHandler } from "../Handlers/clientHandler";
 import { MainHandler } from "../Handlers/mainHandler";
+import { ForeignClientsDAO } from "../DAOs/ForeignClients";
 
 export class ServiceLocator {
     private static readonly _instances: Map<String, any> = new Map<String, any>();
@@ -30,6 +31,14 @@ export class ServiceLocator {
         const key = 'foreignChatroomDAO';
         if (!this._instances.get(key)) {
             this._instances.set(key, new ForeignChatroomsDAO());
+        }
+        return this._instances.get(key);
+    }
+
+    static get foreignClientsDAO(): ForeignClientsDAO {
+        const key = 'foreignClientDAO';
+        if (!this._instances.get(key)) {
+            this._instances.set(key, new ForeignClientsDAO());
         }
         return this._instances.get(key);
     }

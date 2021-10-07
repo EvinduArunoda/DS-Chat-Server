@@ -17,7 +17,7 @@ export class ChatroomDAO {
      * @param roomid client id
      * @returns boolean
      */
-     isRegisteredLocally(roomid: string): boolean {
+    isRegistered(roomid: string): boolean {
         const isRegistered = _.has(this.chatrooms, roomid)
         console.log("ChatroomDAO.isRegistered", roomid, isRegistered);
         return isRegistered;
@@ -79,7 +79,7 @@ export class ChatroomDAO {
      * @param participant identity
      */
     addParticipantDefault(participant: string): void {
-        console.log("ChatroomDAO.addParticipantDefault",  participant, "to", getMainHallId());
+        console.log("ChatroomDAO.addParticipantDefault", participant, "to", getMainHallId());
         this.chatrooms[getMainHallId()].participants.add(participant);
     }
 
@@ -89,7 +89,7 @@ export class ChatroomDAO {
      * @param participant identity 
      */
     addParticipant(roomId: string, participant: string): void {
-        console.log("ChatroomDAO.addParticipant",  participant, "to", roomId);
+        console.log("ChatroomDAO.addParticipant", participant, "to", roomId);
         this.chatrooms[roomId].participants.add(participant);
     }
 
@@ -99,7 +99,7 @@ export class ChatroomDAO {
      * @param participant identity
      */
     removeParticipant(roomId: string, participant: string): void {
-        console.log("ChatroomDAO.removeParticipant",  participant, "from", roomId);
+        console.log("ChatroomDAO.removeParticipant", participant, "from", roomId);
         this.chatrooms[roomId].participants.delete(participant);
     }
 
@@ -110,7 +110,7 @@ export class ChatroomDAO {
      */
     getParticipants(roomId: string): string[] {
         const participants = Array.from(this.chatrooms[roomId].participants);
-        console.log("ChatroomDAO.getParticipants",  roomId, participants);
+        console.log("ChatroomDAO.getParticipants", roomId, participants);
         return participants;
     }
 
