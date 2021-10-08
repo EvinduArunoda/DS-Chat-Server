@@ -40,7 +40,7 @@ export class ChatroomDAO {
     }
 
     /**
-     * delete chstroom from roomid
+     * delete chatroom from roomid
      * @param roomId roomid
      */
     deleteChatroom(roomId: string): void {
