@@ -23,6 +23,10 @@ export class ClientService {
     }
 
     static removeClient(sock: Socket): boolean {
+        const previousRoomid = ServiceLocator.clientsDAO.getClient(sock)?.roomId;
+        const identity = ServiceLocator.clientsDAO.getIdentity(sock)
+        // TODO: Check whether client is the owner of the room
+        writeJSONtoSocket(sock, { type: "roomchange", identity: identity, former: previousRoomid, roomid: '' });
         return ServiceLocator.clientsDAO.removeClient(sock);
     }
 }
