@@ -4,7 +4,9 @@ import { ClientHandler } from "./Handlers/clientHandler";
 import { ChatroomHandler } from "./Handlers/chatroomHandler";
 
 // server id
-process.env['SERVER_ID'] = '1';
+if (!process.env.SERVER_ID) {
+    process.env['SERVER_ID'] = '1';
+}
 
 const server = net.createServer();
 
@@ -26,18 +28,18 @@ server.on('connection', (sock: Socket) => {
                 return ChatroomHandler.who(sock);
             case "createroom":
                 return ChatroomHandler.createRoom(data, sock);
-            case "joinroom":
-                // TODO: join room
-                return;
-            case "deleteroom":
-                // TODO: delete room
-                return;
-            case "message":
-                // TODO: create room
-                return;
-            case "quit":
-                // TODO: disconnect
-                return;
+                case "joinroom":
+                    // TODO: join room
+                    return;
+                case "deleteroom":
+                    // TODO: delete room
+                    return;
+                case "message":
+                    // TODO: create room
+                    return;
+                case "quit":
+                    // TODO: disconnect
+                    return;
             default:
                 break;
         }
@@ -54,8 +56,8 @@ server.on('connection', (sock: Socket) => {
     });
 });
 
-const HOST = '127.0.0.1';
-const PORT = 8080;
+const HOST = process.env.HOST || '127.0.0.1';
+const PORT = parseInt(process.env.PORT || '4444');
 
 server.listen(PORT, HOST, () => {
     console.log(`Server Created at ${HOST}:${PORT}\n`);
