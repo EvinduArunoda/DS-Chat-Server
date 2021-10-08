@@ -3,7 +3,9 @@ import { readJSONfromBuffer } from "./Utils/utils";
 import { responseTypes } from "./Constants/responseTypes";
 import { ServiceLocator } from "./Utils/serviceLocator";
 // server id
-process.env['SERVER_ID'] = '1';
+if (!process.env.SERVER_ID) {
+    process.env['SERVER_ID'] = '1';
+}
 
 const server = net.createServer();
 
@@ -53,8 +55,8 @@ server.on('connection', (sock: Socket) => {
     });
 });
 
-const HOST = '127.0.0.1';
-const PORT = 8080;
+const HOST = process.env.HOST || '127.0.0.1';
+const PORT = parseInt(process.env.PORT || '4444');
 
 server.listen(PORT, HOST, () => {
     console.log(`Server Created at ${HOST}:${PORT}\n`);
