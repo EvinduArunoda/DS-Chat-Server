@@ -8,12 +8,13 @@ import { ForeignServerService } from "./foreignServerService";
 export class ClientService {
     private constructor() { }
 
-    static registerClient(data: any, sock: Socket): boolean {
+     static async registerClient(data: any, sock: Socket): Promise<boolean> {
         const { identity } = data;
         if (!isValidIdentity(identity) || ServiceLocator.clientsDAO.isRegistered(identity)) {
             writeJSONtoSocket(sock, { type: responseTypes.NEW_IDENTITY, approved: "false" });
         // check if id is unique and inform other servers
-        } else if(ForeignServerService.isClientRegistered(identity)) {
+        } else if(await ForeignServerService.isClientRegistered(identity)) {
+            console.log('REGISTERED')
             writeJSONtoSocket(sock, { type: responseTypes.NEW_IDENTITY, approved: "false" });
         } else {
             ServiceLocator.clientsDAO.addNewClient(identity, sock);

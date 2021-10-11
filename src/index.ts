@@ -15,13 +15,13 @@ server.on('connection', (sock: Socket) => {
     // sockets.push(sock);
 
     // recive messages from client
-    sock.on('data', function (buffer: Buffer) {
+    sock.on('data', async function (buffer: Buffer) {
         const data = readJSONfromBuffer(buffer);
         console.log(data)
 
         switch (data.type) {
             case responseTypes.NEW_IDENTITY:
-                return ServiceLocator.mainHandler.getClientHandler().newIdentity(data, sock);
+                return await ServiceLocator.mainHandler.getClientHandler().newIdentity(data, sock);
             case responseTypes.LIST:
                 return ServiceLocator.mainHandler.getChatroomHandler().list(sock);
             case responseTypes.WHO:
