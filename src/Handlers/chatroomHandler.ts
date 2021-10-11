@@ -10,11 +10,11 @@ export class ChatroomHandler {
         return ChatroomService.listParticipants(sock);
     }
 
-    createRoom(data: any, sock: Socket): boolean {
+    createRoom(data: any, sock: Socket): Promise<boolean> {
         return ChatroomService.createRoom(data, sock);
     }
 
-    joinRoom(data: any, sock: Socket): boolean {
+    joinRoom(data: any, sock: Socket): Promise<boolean> {
         return ChatroomService.joinRoom(data, sock);
     }
 

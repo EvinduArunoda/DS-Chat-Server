@@ -14,7 +14,6 @@ export class ClientService {
             writeJSONtoSocket(sock, { type: responseTypes.NEW_IDENTITY, approved: "false" });
         // check if id is unique and inform other servers
         } else if(await ForeignServerService.isClientRegistered(identity)) {
-            console.log('REGISTERED')
             writeJSONtoSocket(sock, { type: responseTypes.NEW_IDENTITY, approved: "false" });
         } else {
             ServiceLocator.clientsDAO.addNewClient(identity, sock);

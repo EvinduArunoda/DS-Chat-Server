@@ -4,5 +4,5 @@ export interface ServerInterface {
 
 export interface Server {
     host: string
-    port: string
+    port: number
 }
