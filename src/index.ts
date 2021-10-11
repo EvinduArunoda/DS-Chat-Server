@@ -2,6 +2,7 @@ import net, { Socket } from "net";
 import { readJSONfromBuffer } from "./Utils/utils";
 import { responseTypes } from "./Constants/responseTypes";
 import { ServiceLocator } from "./Utils/serviceLocator";
+import { checkClientExists } from "./Services/communicationService"
 // server id
 if (!process.env.SERVER_ID) {
     process.env['SERVER_ID'] = '1';
@@ -37,6 +38,8 @@ server.on('connection', (sock: Socket) => {
                 return ServiceLocator.mainHandler.getChatroomHandler().message(data, sock);
             case responseTypes.QUIT:
                 return ServiceLocator.mainHandler.getClientHandler().disconnect(sock, false);
+            case 'isclient':
+                return checkClientExists(data, sock)
             default:
                 break;
         }
