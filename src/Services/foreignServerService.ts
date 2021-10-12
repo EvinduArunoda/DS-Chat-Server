@@ -38,9 +38,9 @@ export class ForeignServerService {
         // {type: 'ischatroom', roomid: roomid}
         const socket = new Socket()
         const leaderId = ServiceLocator.database.leaderId
-        const {host : leaderAddress, port : leaderPort} = new ServerList().getServer(leaderId);
+        const { host: leaderAddress, port: leaderPort } = new ServerList().getServer(leaderId);
         socket.connect(leaderPort, leaderAddress)
-        writeJSONtoSocket(socket, { type: 'ischatroom', roomid })
+        writeJSONtoSocket(socket, { type: 'ischatroom', roomid, serverid: process.env.SERVER_ID })
         return new Promise((resolve, reject) => {
             socket.on('data', (buffer) => {
                 const data = readJSONfromBuffer(buffer);
@@ -62,7 +62,7 @@ export class ForeignServerService {
         // {type:'chatroomserver', roomid:roomid}
         const socket = new Socket()
         const leaderId = ServiceLocator.database.leaderId
-        const {host : leaderAddress, port : leaderPort} = new ServerList().getServer(leaderId);
+        const { host: leaderAddress, port: leaderPort } = new ServerList().getServer(leaderId);
         socket.connect(leaderPort, leaderAddress)
         writeJSONtoSocket(socket, { type: 'chatroomserver', roomid })
         return new Promise((resolve, reject) => {

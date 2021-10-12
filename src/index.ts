@@ -7,7 +7,7 @@ import { checkChatroomExists, checkClientExists, getChatroomServer } from "./Ser
 if (!process.env.SERVER_ID) {
     process.env['SERVER_ID'] = 's1';
 }
-if(!ServiceLocator.database.leaderId){
+if (!ServiceLocator.database.leaderId) {
     ServiceLocator.database.leaderId = 's1'
 }
 const server = net.createServer();
@@ -45,6 +45,11 @@ server.on('connection', (sock: Socket) => {
             case 'ischatroom':
                 return checkChatroomExists(data, sock)
             case 'chatroomserver':
+                return getChatroomServer(data, sock)
+
+            case 'broadcastnewidentity':
+                return getChatroomServer(data, sock)
+            case 'broadcastcreateroom':
                 return getChatroomServer(data, sock)
             default:
                 break;
