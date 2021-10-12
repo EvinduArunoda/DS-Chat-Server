@@ -133,10 +133,11 @@ export class ChatroomService {
         } else {
             ServiceLocator.clientsDAO.joinChatroom(roomid, identity);
             ServiceLocator.chatroomDAO.changeChatroom(identity, former, roomid);
+            // send to client itself
+            writeJSONtoSocket(sock, {type : "serverchange", "approved" : "true", "serverid" : process.env.SERVER_ID});
+            console.log('Here is me')
             // broadcast to new room
             ChatroomService.broadcast(roomid, { type: responseTypes.ROOM_CHANGE, identity, former, roomid });
-            // send to client itself
-            writeJSONtoSocket(sock, { type: responseTypes.ROOM_CHANGE, identity, former, roomid });
         }
         return true;
     }
