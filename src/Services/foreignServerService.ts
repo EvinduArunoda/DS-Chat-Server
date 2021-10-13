@@ -84,7 +84,7 @@ export class ForeignServerService {
         return new Promise((resolve, reject) => {
             socket.on('data', (buffer) => {
                 const data = readJSONfromBuffer(buffer);
-                resolve(data.approved)
+                resolve(data.acknowledged)
             });
             socket.end();
         })
@@ -100,7 +100,7 @@ export class ForeignServerService {
         return new Promise((resolve, reject) => {
             socket.on('data', (buffer) => {
                 const data = readJSONfromBuffer(buffer);
-                resolve(data.approved)
+                resolve(data.acknowledged)
             });
             socket.end();
         })

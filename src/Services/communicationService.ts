@@ -41,3 +41,15 @@ export function getChatroomServer(data: any, sock: Socket): boolean {
     }
     return true
 }
+
+export function acknowledgeChatroomDeletion(data: any, sock: Socket): boolean {
+    const roomid = data.roomid
+    writeJSONtoSocket(sock, {acknowledged:true, type:"informroomdeletion", roomid});
+    return true
+}
+
+export function acknowledgeClientDeletion(data: any, sock: Socket): boolean {
+    const identity = data.identity
+    writeJSONtoSocket(sock, {acknowledged:true, type:"informclientdeletion", identity});
+    return true
+}
