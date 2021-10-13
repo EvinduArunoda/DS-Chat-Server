@@ -74,11 +74,35 @@ export class ForeignServerService {
         })
     }
 
-    static informChatroomDeletion(roomid: string): void {
+    static informChatroomDeletion(roomid: string): Promise<boolean> {
         // TODO: inform other servers about chatroom deletion
+        const socket = new Socket()
+        const leaderId = ServiceLocator.database.leaderId
+        const {host : leaderAddress, port : leaderPort} = new ServerList().getServer(leaderId);
+        socket.connect(leaderPort, leaderAddress)
+        writeJSONtoSocket(socket, { type: 'informroomdeletion', roomid })
+        return new Promise((resolve, reject) => {
+            socket.on('data', (buffer) => {
+                const data = readJSONfromBuffer(buffer);
+                resolve(data.approved)
+            });
+            socket.end();
+        })
     }
 
-    static informClientDeletion(identity: string): void {
+    static informClientDeletion(identity: string): Promise<boolean> {
         // TODO: inform other servers about client deletion
+        const socket = new Socket()
+        const leaderId = ServiceLocator.database.leaderId
+        const {host : leaderAddress, port : leaderPort} = new ServerList().getServer(leaderId);
+        socket.connect(leaderPort, leaderAddress)
+        writeJSONtoSocket(socket, { type: 'informclientdeletion', identity })
+        return new Promise((resolve, reject) => {
+            socket.on('data', (buffer) => {
+                const data = readJSONfromBuffer(buffer);
+                resolve(data.approved)
+            });
+            socket.end();
+        })
     }
 }
