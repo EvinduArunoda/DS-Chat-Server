@@ -57,7 +57,7 @@ export class ChatroomService {
         return true
     }
 
-    static createRoom(data: any, sock: Socket): boolean {
+    static async createRoom(data: any, sock: Socket): Promise<boolean> {
         const { roomid } = data;
         const former = ServiceLocator.clientsDAO.getClient(sock)?.roomid;
         const identity = ServiceLocator.clientsDAO.getIdentity(sock)
@@ -66,9 +66,9 @@ export class ChatroomService {
         if (!isValidIdentity(roomid) || ServiceLocator.chatroomDAO.isOwner(identity, former) || ServiceLocator.chatroomDAO.isRegistered(roomid)) {
             writeJSONtoSocket(sock, { type: responseTypes.CREATE_ROOM, roomid, approved: "false" });
         // check if id is unique and inform other servers
-        } else if (ForeignServerService.isChatroomRegistered(roomid)){
+        } else if (await ForeignServerService.isChatroomRegistered(roomid)){
             writeJSONtoSocket(sock, { type: responseTypes.CREATE_ROOM, roomid, approved: "false" });
-        } 
+        }
         else {
             ServiceLocator.chatroomDAO.addNewChatroom(former, roomid, identity);
             ServiceLocator.clientsDAO.joinChatroom(roomid, identity);
@@ -82,7 +82,7 @@ export class ChatroomService {
         return true;
     }
 
-    static joinRoom(data: any, sock: Socket): boolean {
+    static async joinRoom(data: any, sock: Socket): Promise<boolean> {
         const { roomid } = data;
         const former = ServiceLocator.clientsDAO.getClient(sock)?.roomid;
         const identity = ServiceLocator.clientsDAO.getIdentity(sock)
@@ -99,7 +99,8 @@ export class ChatroomService {
             // broadcast to new room
             ChatroomService.broadcast(roomid, { type: responseTypes.ROOM_CHANGE, identity, former, roomid });
         } else {
-            const serverid = ForeignServerService.getChatroomRegisteredServer(roomid);
+            const serverid = await ForeignServerService.getChatroomRegisteredServer(roomid);
+            console.log(serverid)
             // check if the room is in another server
             if (!!serverid) {
                 // remove from previous room
@@ -108,7 +109,7 @@ export class ChatroomService {
                 ChatroomService.broadcast(former, { type: responseTypes.ROOM_CHANGE, identity, former, roomid });
                 // redirect to new server room
                 const {host, port} = new ServerList().getServer(serverid);
-                writeJSONtoSocket(sock, {type: responseTypes.ROUTE, roomid})
+                writeJSONtoSocket(sock, {type: responseTypes.ROUTE, roomid, host, port: port.toString()})
             }
         }
         return true;
@@ -132,15 +133,16 @@ export class ChatroomService {
         } else {
             ServiceLocator.clientsDAO.joinChatroom(roomid, identity);
             ServiceLocator.chatroomDAO.changeChatroom(identity, former, roomid);
+            // send to client itself
+            writeJSONtoSocket(sock, {type : "serverchange", "approved" : "true", "serverid" : process.env.SERVER_ID});
+            console.log('Here is me')
             // broadcast to new room
             ChatroomService.broadcast(roomid, { type: responseTypes.ROOM_CHANGE, identity, former, roomid });
-            // send to client itself
-            writeJSONtoSocket(sock, { type: responseTypes.ROOM_CHANGE, identity, former, roomid });
         }
         return true;
     }
 
-    static deleteRoom(data: any, sock: Socket): boolean {
+    static async deleteRoom(data: any, sock: Socket): Promise<boolean> {
         const { roomid } = data;
         const identity = ServiceLocator.clientsDAO.getIdentity(sock);
         if (!identity) return false;
@@ -164,7 +166,7 @@ export class ChatroomService {
             // delete chatroom
             ServiceLocator.chatroomDAO.deleteChatroom(roomid);
             // inform other servers
-            ForeignServerService.informChatroomDeletion(roomid);
+            await ForeignServerService.informChatroomDeletion(roomid);
             writeJSONtoSocket(sock, { type: responseTypes.DELETE_ROOM, roomid, approved: "true" });
         }
         return true;
@@ -179,5 +181,5 @@ export class ChatroomService {
         ChatroomService.broadcastExceptSender(roomid, { type: responseTypes.MESSAGE, identity, content }, identity)
         return true;
     }
-    
+
 }

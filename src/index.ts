@@ -2,9 +2,19 @@ import net, { Socket } from "net";
 import { readJSONfromBuffer } from "./Utils/utils";
 import { responseTypes } from "./Constants/responseTypes";
 import { ServiceLocator } from "./Utils/serviceLocator";
+import {
+    acknowledgeChatroomDeletion, acknowledgeClientDeletion,
+    checkChatroomExists,
+    checkClientExists,
+    getChatroomServer
+} from "./Services/communicationService"
 // server id
-process.env['SERVER_ID'] = '1';
-
+if (!process.env.SERVER_ID) {
+    process.env['SERVER_ID'] = 's1';
+}
+if (!ServiceLocator.database.leaderId) {
+    ServiceLocator.database.leaderId = 's1'
+}
 const server = net.createServer();
 
 server.on('connection', (sock: Socket) => {
@@ -12,13 +22,13 @@ server.on('connection', (sock: Socket) => {
     // sockets.push(sock);
 
     // recive messages from client
-    sock.on('data', function (buffer: Buffer) {
+    sock.on('data', async function (buffer: Buffer) {
         const data = readJSONfromBuffer(buffer);
         console.log(data)
 
         switch (data.type) {
             case responseTypes.NEW_IDENTITY:
-                return ServiceLocator.mainHandler.getClientHandler().newIdentity(data, sock);
+                return await ServiceLocator.mainHandler.getClientHandler().newIdentity(data, sock);
             case responseTypes.LIST:
                 return ServiceLocator.mainHandler.getChatroomHandler().list(sock);
             case responseTypes.WHO:
@@ -35,6 +45,21 @@ server.on('connection', (sock: Socket) => {
                 return ServiceLocator.mainHandler.getChatroomHandler().message(data, sock);
             case responseTypes.QUIT:
                 return ServiceLocator.mainHandler.getClientHandler().disconnect(sock, false);
+            case 'isclient':
+                return checkClientExists(data, sock)
+            case 'ischatroom':
+                return checkChatroomExists(data, sock)
+            case 'chatroomserver':
+                return getChatroomServer(data, sock)
+
+            case 'broadcastnewidentity':
+                return getChatroomServer(data, sock)
+            case 'broadcastcreateroom':
+                return getChatroomServer(data, sock)
+            case 'informroomdeletion':
+                return  acknowledgeChatroomDeletion(data, sock)
+            case 'informclientdeletion':
+                return  acknowledgeClientDeletion(data, sock)
             default:
                 break;
         }
@@ -53,8 +78,8 @@ server.on('connection', (sock: Socket) => {
     });
 });
 
-const HOST = '127.0.0.1';
-const PORT = 8080;
+const HOST = process.env.HOST || '127.0.0.1';
+const PORT = parseInt(process.env.PORT || '4444');
 
 server.listen(PORT, HOST, () => {
     console.log(`Server Created at ${HOST}:${PORT}\n`);

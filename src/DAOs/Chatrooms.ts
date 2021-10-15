@@ -120,7 +120,7 @@ export class ChatroomDAO {
      * @param participant identity
      */
     changeChatroom(participant: string, previousRoomid: string, roomid: string): void {
-        this.chatrooms[previousRoomid].participants.delete(participant);
+        this.chatrooms[previousRoomid]?.participants.delete(participant);
         this.chatrooms[roomid].participants.add(participant);
     }
 }
