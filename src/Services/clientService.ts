@@ -27,7 +27,7 @@ export class ClientService {
         return true
     }
 
-    static removeClient(sock: Socket, forced: boolean): boolean {
+    static async removeClient(sock: Socket, forced: boolean): Promise<boolean> {
         const roomid = ServiceLocator.clientsDAO.getClient(sock)?.roomid;
         const identity = ServiceLocator.clientsDAO.getIdentity(sock);
         if (!roomid || !identity) return false;
@@ -59,7 +59,7 @@ export class ClientService {
         // remove from client list
         ServiceLocator.clientsDAO.removeClient(sock);
         // inform other servers
-        ForeignServerService.informClientDeletion(identity);
+        await ForeignServerService.informClientDeletion(identity);
         if (!forced) {
             // delete connection
             writeJSONtoSocket(sock, { type: responseTypes.ROOM_CHANGE, identity: identity, former: roomid, roomid: "" });

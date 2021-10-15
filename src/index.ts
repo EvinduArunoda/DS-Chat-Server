@@ -2,7 +2,12 @@ import net, { Socket } from "net";
 import { readJSONfromBuffer } from "./Utils/utils";
 import { responseTypes } from "./Constants/responseTypes";
 import { ServiceLocator } from "./Utils/serviceLocator";
-import { checkChatroomExists, checkClientExists, getChatroomServer } from "./Services/communicationService"
+import {
+    acknowledgeChatroomDeletion, acknowledgeClientDeletion,
+    checkChatroomExists,
+    checkClientExists,
+    getChatroomServer
+} from "./Services/communicationService"
 // server id
 if (!process.env.SERVER_ID) {
     process.env['SERVER_ID'] = 's1';
@@ -51,6 +56,10 @@ server.on('connection', (sock: Socket) => {
                 return getChatroomServer(data, sock)
             case 'broadcastcreateroom':
                 return getChatroomServer(data, sock)
+            case 'informroomdeletion':
+                return  acknowledgeChatroomDeletion(data, sock)
+            case 'informclientdeletion':
+                return  acknowledgeClientDeletion(data, sock)
             default:
                 break;
         }

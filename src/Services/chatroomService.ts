@@ -68,7 +68,7 @@ export class ChatroomService {
         // check if id is unique and inform other servers
         } else if (await ForeignServerService.isChatroomRegistered(roomid)){
             writeJSONtoSocket(sock, { type: responseTypes.CREATE_ROOM, roomid, approved: "false" });
-        } 
+        }
         else {
             ServiceLocator.chatroomDAO.addNewChatroom(former, roomid, identity);
             ServiceLocator.clientsDAO.joinChatroom(roomid, identity);
@@ -142,7 +142,7 @@ export class ChatroomService {
         return true;
     }
 
-    static deleteRoom(data: any, sock: Socket): boolean {
+    static async deleteRoom(data: any, sock: Socket): Promise<boolean> {
         const { roomid } = data;
         const identity = ServiceLocator.clientsDAO.getIdentity(sock);
         if (!identity) return false;
@@ -166,7 +166,7 @@ export class ChatroomService {
             // delete chatroom
             ServiceLocator.chatroomDAO.deleteChatroom(roomid);
             // inform other servers
-            ForeignServerService.informChatroomDeletion(roomid);
+            await ForeignServerService.informChatroomDeletion(roomid);
             writeJSONtoSocket(sock, { type: responseTypes.DELETE_ROOM, roomid, approved: "true" });
         }
         return true;
@@ -181,5 +181,5 @@ export class ChatroomService {
         ChatroomService.broadcastExceptSender(roomid, { type: responseTypes.MESSAGE, identity, content }, identity)
         return true;
     }
-    
+
 }

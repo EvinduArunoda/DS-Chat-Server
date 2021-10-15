@@ -67,3 +67,16 @@ function broadcastServers(data: any) {
         writeJSONtoSocket(socket, data);
     });
 }
+export function acknowledgeChatroomDeletion(data: any, sock: Socket): boolean {
+    const roomid = data.roomid
+    writeJSONtoSocket(sock, {acknowledged:true, type:"informroomdeletion", roomid});
+    //broad cast to others
+    return true
+}
+
+export function acknowledgeClientDeletion(data: any, sock: Socket): boolean {
+    const identity = data.identity
+    writeJSONtoSocket(sock, {acknowledged:true, type:"informclientdeletion", identity});
+    //broad cast to others
+    return true
+}
