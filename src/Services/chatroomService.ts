@@ -2,7 +2,7 @@ import { getMainHallId, isValidIdentity, writeJSONtoSocket } from "../Utils/util
 import { ServiceLocator } from "../Utils/serviceLocator";
 import { Socket } from "net";
 import { responseTypes } from "../Constants/responseTypes";
-import { ForeignServerService } from "./foreignServerService";
+import { CommunicationService } from "./communicationService";
 import { ServerList } from "../Constants/servers";
 
 export class ChatroomService {
@@ -66,7 +66,7 @@ export class ChatroomService {
         if (!isValidIdentity(roomid) || ServiceLocator.chatroomDAO.isOwner(identity, former) || ServiceLocator.chatroomDAO.isRegistered(roomid)) {
             writeJSONtoSocket(sock, { type: responseTypes.CREATE_ROOM, roomid, approved: "false" });
         // check if id is unique and inform other servers
-        } else if (await ForeignServerService.isChatroomRegistered(roomid)){
+        } else if (await CommunicationService.isChatroomRegistered(roomid)){
             writeJSONtoSocket(sock, { type: responseTypes.CREATE_ROOM, roomid, approved: "false" });
         }
         else {
@@ -99,7 +99,7 @@ export class ChatroomService {
             // broadcast to new room
             ChatroomService.broadcast(roomid, { type: responseTypes.ROOM_CHANGE, identity, former, roomid });
         } else {
-            const serverid = await ForeignServerService.getChatroomRegisteredServer(roomid);
+            const serverid = await CommunicationService.getChatroomRegisteredServer(roomid);
             console.log(serverid)
             // check if the room is in another server
             if (!!serverid) {
@@ -166,7 +166,7 @@ export class ChatroomService {
             // delete chatroom
             ServiceLocator.chatroomDAO.deleteChatroom(roomid);
             // inform other servers
-            await ForeignServerService.informChatroomDeletion(roomid);
+            await CommunicationService.informChatroomDeletion(roomid);
             writeJSONtoSocket(sock, { type: responseTypes.DELETE_ROOM, roomid, approved: "true" });
         }
         return true;
