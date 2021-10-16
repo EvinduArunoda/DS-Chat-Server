@@ -18,7 +18,7 @@ export class ChatroomHandler {
         return ChatroomService.joinRoom(data, sock);
     }
 
-    deleteRoom(data:any, sock:Socket): boolean {
+    deleteRoom(data:any, sock:Socket): Promise<boolean> {
         return ChatroomService.deleteRoom(data, sock);    
     }
 

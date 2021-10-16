@@ -1,82 +1,123 @@
 import { Socket } from "net";
-import { isValidIdentity, writeJSONtoSocket } from "../Utils/utils";
-import { ServiceLocator } from "../Utils/serviceLocator";
-import { ChatroomService } from "./chatroomService";
+import { responseTypes } from "../Constants/responseTypes";
 import { ServerList } from "../Constants/servers";
+import { ServiceLocator } from "../Utils/serviceLocator";
+import { getServerId, readJSONfromBuffer, writeJSONtoSocket } from "../Utils/utils";
 
-export function checkClientExists(data: any, sock: Socket): boolean {
-    const identity = data.identity
-    // Check database
-    if (ServiceLocator.database.clients && ServiceLocator.database.clients.includes(identity)) {
-        writeJSONtoSocket(sock, { exists: true, type: "isclient", identity });
-    } else {
-        ServiceLocator.database.addClient(identity)
-        console.log(ServiceLocator.database.clients)
-        writeJSONtoSocket(sock, { exists: false, type: "isclient", identity });
-        // Inform other servers
-        broadcastServers({ type: "broadcastnewidentity", "approved": true, identity })
+export class CommunicationService {
+    constructor() { }
+
+    static async isClientRegistered(identity: string): Promise<any> {
+        // TODO: check if the server is the leader before connecting
+        // Check if client id is unique and inform other servers
+        // return true if id is NOT unique
+        // return false if id is unique
+        // {type: 'isclient', identity: identity, serverid: serverid }
+        const socket = new Socket()
+        const leaderId = ServiceLocator.leaderDAO.getLeaderId()
+        const { host: leaderAddress, port: leaderPort } = new ServerList().getServer(leaderId);
+        socket.connect(leaderPort, leaderAddress)
+        writeJSONtoSocket(socket, { type: responseTypes.IS_CLIENT, identity, serverid: getServerId() })
+        return new Promise((resolve, reject) => {
+            socket.on('data', (buffer) => {
+                const data = readJSONfromBuffer(buffer);
+                if (data.exists) {
+                    resolve(true)
+                }
+                else {
+                    resolve(false)
+                }
+            });
+            socket.end();
+        })
     }
-    return true
-}
 
-export function checkChatroomExists(data: any, sock: Socket): boolean {
-    const roomid = data.roomid
-    const serverid = data.serverid
-    // Check database
-    if (ServiceLocator.database.chatRooms && ServiceLocator.database.chatRooms.has(roomid)) {
-        writeJSONtoSocket(sock, { exists: true, type: "ischatroom", roomid });
-    } else {
-        ServiceLocator.database.addChatRoom(roomid, process.env.SERVER_ID as string)
-        console.log(ServiceLocator.database.chatRooms)
-        writeJSONtoSocket(sock, { exists: false, type: "ischatroom", roomid });
-        // Inform other servers
-        broadcastServers({ type: "broadcastcreateroom", "approved": true, roomid, serverid })
+    static isChatroomRegistered(roomid: string): Promise<boolean> {
+        // TODO: check if the server is the leader before connecting
+        // Check if room id is unique and inform other servers
+        // return true if id is NOT unique
+        // return false if id is unique
+        // {type: 'ischatroom', roomid: roomid, serverid: serverid}
+        const socket = new Socket()
+        const leaderId = ServiceLocator.leaderDAO.getLeaderId()
+        const { host: leaderAddress, port: leaderPort } = new ServerList().getServer(leaderId);
+        socket.connect(leaderPort, leaderAddress)
+        writeJSONtoSocket(socket, { type: responseTypes.IS_CHATROOM, roomid, serverid: getServerId() })
+        return new Promise((resolve, reject) => {
+            socket.on('data', (buffer) => {
+                const data = readJSONfromBuffer(buffer);
+                if (data.exists) {
+                    resolve(true)
+                }
+                else {
+                    resolve(false)
+                }
+            });
+            socket.end();
+        })
     }
-    return true
-}
 
-export function getChatroomServer(data: any, sock: Socket): boolean {
-    const roomid = data.roomid
-    // Check database
-    if (ServiceLocator.database.chatRooms && ServiceLocator.database.chatRooms.has(roomid)) {
-        writeJSONtoSocket(sock, { serverid: ServiceLocator.database.chatRooms.get(roomid)?.toString(), type: "chatroomserver", roomid });
-    } else {
-        writeJSONtoSocket(sock, { serverid: undefined, type: "chatroomserver", roomid });
+    static getChatroomRegisteredServer(roomid: string): Promise<string | undefined> {
+        // TODO: check if the server is the leader before connecting
+        // check if the room is in another server
+        // return server id
+        // return undefined if not found
+        // {type:'chatroomserver', roomid:roomid}
+        const socket = new Socket()
+        const leaderId = ServiceLocator.leaderDAO.getLeaderId()
+        const { host: leaderAddress, port: leaderPort } = new ServerList().getServer(leaderId);
+        socket.connect(leaderPort, leaderAddress)
+        writeJSONtoSocket(socket, { type: responseTypes.CHATROOM_SERVER, roomid })
+        return new Promise((resolve, reject) => {
+            socket.on('data', (buffer) => {
+                const data = readJSONfromBuffer(buffer);
+                resolve(data.serverid)
+            });
+            socket.end();
+        })
     }
-    return true
-}
 
-export function saveNewIdentity(data: any) {
-    const identity = data.identity
-    ServiceLocator.database.addClient(identity)
-}
+    static informChatroomDeletion(roomid: string): Promise<boolean> {
+        // TODO: check if the server is the leader before connecting
+        // inform other servers about chatroom deletion
+        const socket = new Socket()
+        const leaderId = ServiceLocator.leaderDAO.getLeaderId()
+        const { host: leaderAddress, port: leaderPort } = new ServerList().getServer(leaderId);
+        socket.connect(leaderPort, leaderAddress)
+        writeJSONtoSocket(socket, { type: responseTypes.INFORM_ROOMDELETION, roomid, serverid: getServerId() })
+        return new Promise((resolve, reject) => {
+            socket.on('data', (buffer) => {
+                const data = readJSONfromBuffer(buffer);
+                resolve(data.acknowledged)
+            });
+            socket.end();
+        })
+    }
 
-export function saveNewChatRoom(data: any) {
-    const roomid = data.roomid
-    const serverid = data.serverid
+    static informClientDeletion(identity: string): Promise<boolean> {
+        // TODO: check if the server is the leader before connecting
+        // inform other servers about client deletion
+        const socket = new Socket()
+        const leaderId = ServiceLocator.leaderDAO.getLeaderId()
+        const { host: leaderAddress, port: leaderPort } = new ServerList().getServer(leaderId);
+        socket.connect(leaderPort, leaderAddress)
+        writeJSONtoSocket(socket, { type: responseTypes.INFORM_CLIENTDELETION, identity, serverid: getServerId() })
+        return new Promise((resolve, reject) => {
+            socket.on('data', (buffer) => {
+                const data = readJSONfromBuffer(buffer);
+                resolve(data.acknowledged)
+            });
+            socket.end();
+        })
+    }
 
-    ServiceLocator.database.addChatRoom(roomid, serverid)
-}
+    static saveNewIdentity(data: any) {
+        const { identity, serverid } = data
+        ServiceLocator.foreignClientsDAO.addNewClient(serverid, identity)
+    }
 
-function broadcastServers(data: any) {
-    const serverList = new ServerList()
-    const socket = new Socket()
-    serverList.getServerIds().filter(serverId => serverId !== process.env.SERVER_ID).forEach((serverId: string) => {
-        const { host, port } = serverList.getServer(serverId);
-        socket.connect(port, host)
-        writeJSONtoSocket(socket, data);
-    });
-}
-export function acknowledgeChatroomDeletion(data: any, sock: Socket): boolean {
-    const roomid = data.roomid
-    writeJSONtoSocket(sock, {acknowledged:true, type:"informroomdeletion", roomid});
-    //broad cast to others
-    return true
-}
-
-export function acknowledgeClientDeletion(data: any, sock: Socket): boolean {
-    const identity = data.identity
-    writeJSONtoSocket(sock, {acknowledged:true, type:"informclientdeletion", identity});
-    //broad cast to others
-    return true
+    static saveNewChatRoom(data: any) {
+        const { roomid, serverid } = data
+        ServiceLocator.foreignChatroomsDAO.addNewChatroom(serverid, roomid)
+    }
 }

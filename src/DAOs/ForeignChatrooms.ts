@@ -12,6 +12,18 @@ export class ForeignChatroomsDAO {
     }
 
     /**
+     * check if the roomid is unique
+     * @param roomid client id
+     * @returns boolean
+     */
+    isRegistered(roomid: string): boolean {
+        // check if the clients Map<string, Set<string>> has roomid
+        var isRegistered = _.findKey(this.chatrooms, (client) => _.has(client, roomid)) !== undefined
+        console.log("ForeignChatroomsDAO.isRegistered", roomid, isRegistered);
+        return isRegistered;
+    }
+
+    /**
      * get list of roomids
      * @returns roomids
      */
@@ -21,7 +33,15 @@ export class ForeignChatroomsDAO {
         return roomids;
     }
 
-    // called by the leader node
+    /**
+     * get the serverid of the chatroom
+     * @param roomid client id
+     * @returns serverid
+     */
+    getChatroomServer(roomid: string): string | undefined {
+        // check if the clients Map<string, Set<string>> has roomid and return serverdi
+        return _.findKey(this.chatrooms, (client) => _.has(client, roomid))
+    }
 
     /**
      * add new chatroom

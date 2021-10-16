@@ -13,5 +13,14 @@ export const responseTypes = {
     MOVE_JOIN: "movejoin",
     MESSAGE: "message",
     ROUTE: "route",
-    QUIT: "quit"
+    QUIT: "quit",
+    IS_CLIENT: "isclient",
+    IS_CHATROOM: "ischatroom",
+    CHATROOM_SERVER: "chatroomserver",
+    BROADCAST_NEWIDENTITY: "broadcastnewidentity",
+    BROADCAST_CREATEROOM: "broadcastcreateroom",
+    BROADCAST_DELETEROOM: "broadcastdeleteroom",
+    BROADCAST_QUIT: "broadcastquit",
+    INFORM_ROOMDELETION: "informroomdeletion",
+    INFORM_CLIENTDELETION: "informclientdeletion"
 }

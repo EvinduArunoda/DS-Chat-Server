@@ -3,7 +3,7 @@ import { getMainHallId, isValidIdentity, writeJSONtoSocket } from "../Utils/util
 import { ServiceLocator } from "../Utils/serviceLocator";
 import { ChatroomService } from "./chatroomService";
 import { responseTypes } from "../Constants/responseTypes";
-import { ForeignServerService } from "./foreignServerService";
+import { CommunicationService } from "./communicationService";
 
 export class ClientService {
     private constructor() { }
@@ -13,7 +13,7 @@ export class ClientService {
         if (!isValidIdentity(identity) || ServiceLocator.clientsDAO.isRegistered(identity)) {
             writeJSONtoSocket(sock, { type: responseTypes.NEW_IDENTITY, approved: "false" });
         // check if id is unique and inform other servers
-        } else if(await ForeignServerService.isClientRegistered(identity)) {
+        } else if(await CommunicationService.isClientRegistered(identity)) {
             writeJSONtoSocket(sock, { type: responseTypes.NEW_IDENTITY, approved: "false" });
         } else {
             ServiceLocator.clientsDAO.addNewClient(identity, sock);
@@ -49,7 +49,7 @@ export class ClientService {
             // delete chatroom
             ServiceLocator.chatroomDAO.deleteChatroom(roomid);
             // inform other servers
-            ForeignServerService.informChatroomDeletion(roomid);
+            CommunicationService.informChatroomDeletion(roomid);
         } else {
             // leave chatroom
             ServiceLocator.chatroomDAO.removeParticipant(roomid, identity);
@@ -59,7 +59,7 @@ export class ClientService {
         // remove from client list
         ServiceLocator.clientsDAO.removeClient(sock);
         // inform other servers
-        await ForeignServerService.informClientDeletion(identity);
+        await CommunicationService.informClientDeletion(identity);
         if (!forced) {
             // delete connection
             writeJSONtoSocket(sock, { type: responseTypes.ROOM_CHANGE, identity: identity, former: roomid, roomid: "" });

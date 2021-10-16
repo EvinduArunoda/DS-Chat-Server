@@ -5,7 +5,8 @@ import { ChatroomHandler } from "../Handlers/chatroomHandler";
 import { ClientHandler } from "../Handlers/clientHandler";
 import { MainHandler } from "../Handlers/mainHandler";
 import { ForeignClientsDAO } from "../DAOs/ForeignClients";
-import Database from '../Database/Database'
+import { LeaderDAO } from "../DAOs/Leader";
+
 export class ServiceLocator {
     private static readonly _instances: Map<String, any> = new Map<String, any>();
 
@@ -43,6 +44,14 @@ export class ServiceLocator {
         return this._instances.get(key);
     }
 
+    static get leaderDAO(): LeaderDAO {
+        const key = 'leaderDAO';
+        if (!this._instances.get(key)) {
+            this._instances.set(key, new LeaderDAO());
+        }
+        return this._instances.get(key);
+    }
+
     static get charoomHandler(): ChatroomHandler {
         const key = 'chatroom_handler';
         if (!this._instances.get(key)) {
@@ -63,14 +72,6 @@ export class ServiceLocator {
         const key = 'main_handler';
         if (!this._instances.get(key)) {
             this._instances.set(key, new MainHandler());
-        }
-        return this._instances.get(key);
-    }
-
-    static get database(): Database {
-        const key = 'database';
-        if (!this._instances.get(key)) {
-            this._instances.set(key, new Database());
         }
         return this._instances.get(key);
     }

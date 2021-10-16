@@ -6,7 +6,7 @@ export class ClientHandler {
         return ClientService.registerClient(data, sock);
     }
 
-    disconnect(sock: Socket, forced: boolean): boolean {
+    disconnect(sock: Socket, forced: boolean): Promise<boolean> {
         return ClientService.removeClient(sock, forced);
     }
 }

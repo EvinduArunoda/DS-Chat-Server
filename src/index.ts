@@ -2,18 +2,13 @@ import net, { Socket } from "net";
 import { readJSONfromBuffer } from "./Utils/utils";
 import { responseTypes } from "./Constants/responseTypes";
 import { ServiceLocator } from "./Utils/serviceLocator";
-import {
-    acknowledgeChatroomDeletion, acknowledgeClientDeletion,
-    checkChatroomExists,
-    checkClientExists,
-    getChatroomServer
-} from "./Services/communicationService"
+import { LeaderService } from "./Services/leaderService"
 // server id
 if (!process.env.SERVER_ID) {
     process.env['SERVER_ID'] = 's1';
 }
-if (!ServiceLocator.database.leaderId) {
-    ServiceLocator.database.leaderId = 's1'
+if (!ServiceLocator.leaderDAO.getLeaderId()) {
+    ServiceLocator.leaderDAO.setLeaderId('s1')
 }
 const server = net.createServer();
 
@@ -45,21 +40,22 @@ server.on('connection', (sock: Socket) => {
                 return ServiceLocator.mainHandler.getChatroomHandler().message(data, sock);
             case responseTypes.QUIT:
                 return ServiceLocator.mainHandler.getClientHandler().disconnect(sock, false);
-            case 'isclient':
-                return checkClientExists(data, sock)
-            case 'ischatroom':
-                return checkChatroomExists(data, sock)
-            case 'chatroomserver':
-                return getChatroomServer(data, sock)
-
-            case 'broadcastnewidentity':
-                return getChatroomServer(data, sock)
-            case 'broadcastcreateroom':
-                return getChatroomServer(data, sock)
-            case 'informroomdeletion':
-                return  acknowledgeChatroomDeletion(data, sock)
-            case 'informclientdeletion':
-                return  acknowledgeClientDeletion(data, sock)
+            // leader functions
+            case responseTypes.IS_CLIENT:
+                return ServiceLocator.mainHandler.getLeaderHandler().isClient(data, sock)
+            case responseTypes.IS_CHATROOM:
+                return ServiceLocator.mainHandler.getLeaderHandler().isChatroom(data, sock)
+            case responseTypes.CHATROOM_SERVER:
+                return ServiceLocator.mainHandler.getLeaderHandler().chatroomServer(data, sock)
+            case responseTypes.INFORM_ROOMDELETION:
+                return ServiceLocator.mainHandler.getLeaderHandler().informRoomDeletion(data, sock)
+            case responseTypes.INFORM_CLIENTDELETION:
+                return ServiceLocator.mainHandler.getLeaderHandler().informClientDeletion(data, sock)
+            // node functions
+            case responseTypes.BROADCAST_NEWIDENTITY:
+                return ServiceLocator.mainHandler.getCommunicationHandler().broadcastNewIdentity(data)
+            case responseTypes.BROADCAST_CREATEROOM:
+                return ServiceLocator.mainHandler.getCommunicationHandler().broadcastCreateroom(data)
             default:
                 break;
         }

@@ -1,3 +1,4 @@
+import _ from "lodash";
 import { ForeignClientInterface } from "../Interfaces/ForeignClientInterface";
 
 export class ForeignClientsDAO {
@@ -6,6 +7,18 @@ export class ForeignClientsDAO {
     constructor() { }
 
     // called by the leader node
+
+    /**
+     * check if the identity is unique
+     * @param identity client id
+     * @returns boolean
+     */
+    isRegistered(identity: string): boolean {
+        // check if the clients Map<string, Set<string>> has identity
+        var isRegistered = _.findKey(this.clients, (client) => _.has(client, identity)) !== undefined
+        console.log("ForeignClientsDAO.isRegistered", identity, isRegistered);
+        return isRegistered;
+    }
 
     /**
      * add new client
