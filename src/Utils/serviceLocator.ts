@@ -6,6 +6,7 @@ import { ClientHandler } from "../Handlers/clientHandler";
 import { MainHandler } from "../Handlers/mainHandler";
 import { ForeignClientsDAO } from "../DAOs/ForeignClients";
 import { LeaderDAO } from "../DAOs/Leader";
+import { ElectionHandler } from "../Handlers/electionHandler";
 
 export class ServiceLocator {
     private static readonly _instances: Map<String, any> = new Map<String, any>();
@@ -72,6 +73,14 @@ export class ServiceLocator {
         const key = 'main_handler';
         if (!this._instances.get(key)) {
             this._instances.set(key, new MainHandler());
+        }
+        return this._instances.get(key);
+    }
+
+    static get electionHandler(): ElectionHandler {
+        const key = 'election_handler';
+        if (!this._instances.get(key)) {
+            this._instances.set(key, new ElectionHandler());
         }
         return this._instances.get(key);
     }
