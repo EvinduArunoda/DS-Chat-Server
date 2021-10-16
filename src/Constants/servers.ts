@@ -14,7 +14,7 @@ export class ServerList {
     }
 
     getServer(serverid: string): Server {
-        return this.serverList[serverid];
+        return this.serverList[parseInt(serverid)];
     }
 
     getHigherUpServers(): Server[]{
