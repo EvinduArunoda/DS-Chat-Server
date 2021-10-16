@@ -61,7 +61,7 @@ export class LeaderService {
         const { roomid, serverid } = data
         ServiceLocator.foreignChatroomsDAO.removeChatroom(serverid, roomid);
         writeJSONtoSocket(sock, { acknowledged: true, type: responseTypes.INFORM_ROOMDELETION, roomid });
-        //TODO: broad cast to others
+        LeaderService.broadcastServers({ type: responseTypes.BROADCAST_DELETEROOM, roomid, serverid })
         return true
     }
 
@@ -69,7 +69,7 @@ export class LeaderService {
         const { identity, serverid } = data
         ServiceLocator.foreignClientsDAO.removeClient(serverid, identity);
         writeJSONtoSocket(sock, { acknowledged: true, type: responseTypes.INFORM_CLIENTDELETION, identity });
-        //TODO: broad cast to others
+        LeaderService.broadcastServers({ type: responseTypes.BROADCAST_QUIT, identity, serverid })
         return true
     }
 }
