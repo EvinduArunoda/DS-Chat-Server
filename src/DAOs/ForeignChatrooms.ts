@@ -40,7 +40,7 @@ export class ForeignChatroomsDAO {
      */
     getChatroomServer(roomid: string): string | undefined {
         // check if the clients Map<string, Set<string>> has roomid and return serverdi
-        return _.findKey(this.chatrooms, (client) => _.has(client, roomid))
+        return _.findKey(this.chatrooms, (server) => server.has(roomid))
     }
 
     /**
