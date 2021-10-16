@@ -5,10 +5,10 @@ import { ServiceLocator } from "./Utils/serviceLocator";
 import { LeaderService } from "./Services/leaderService"
 // server id
 if (!process.env.SERVER_ID) {
-    process.env['SERVER_ID'] = 's1';
+    process.env['SERVER_ID'] = '1';
 }
 if (!ServiceLocator.leaderDAO.getLeaderId()) {
-    ServiceLocator.leaderDAO.setLeaderId('s1')
+    ServiceLocator.leaderDAO.setLeaderId('1')
 }
 const server = net.createServer();
 
