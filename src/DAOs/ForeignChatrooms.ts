@@ -18,7 +18,7 @@ export class ForeignChatroomsDAO {
      */
     isRegistered(roomid: string): boolean {
         // check if the clients Map<string, Set<string>> has roomid
-        var isRegistered = _.findKey(this.chatrooms, (client) => _.has(client, roomid)) !== undefined
+        var isRegistered = _.findKey(this.chatrooms, (server) => server.has(roomid)) !== undefined
         console.log("ForeignChatroomsDAO.isRegistered", roomid, isRegistered);
         return isRegistered;
     }
@@ -49,6 +49,9 @@ export class ForeignChatroomsDAO {
      * @param serverid server id
      */
     addNewChatroom(serverid: string, roomid: string): void {
+        if(this.chatrooms[serverid] === undefined){
+            this.chatrooms[serverid] = new Set()
+        }
         this.chatrooms[serverid].add(roomid);
         console.log("ForeignChatroomsDAO.addNewChatroom", serverid, roomid);
     }
