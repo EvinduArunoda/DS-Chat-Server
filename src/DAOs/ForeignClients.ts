@@ -15,7 +15,7 @@ export class ForeignClientsDAO {
      */
     isRegistered(identity: string): boolean {
         // check if the clients Map<string, Set<string>> has identity
-        var isRegistered = _.findKey(this.clients, (client) => _.has(client, identity)) !== undefined
+        var isRegistered = _.findKey(this.clients, (client) => client.has(identity)) !== undefined
         console.log("ForeignClientsDAO.isRegistered", identity, isRegistered);
         return isRegistered;
     }
@@ -26,6 +26,9 @@ export class ForeignClientsDAO {
      * @param serverid server id
      */
     addNewClient(serverid: string, identity: string): void {
+        if(this.clients[serverid] === undefined){
+            this.clients[serverid] = new Set()
+        }
         this.clients[serverid].add(identity);
         console.log("ForeignClientsDAO.addNewClient", serverid, identity);
     }
