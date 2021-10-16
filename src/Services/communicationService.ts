@@ -80,6 +80,7 @@ export class CommunicationService {
     static informChatroomDeletion(roomid: string): Promise<boolean> {
         // TODO: check if the server is the leader before connecting
         // inform other servers about chatroom deletion
+        console.log('INFORM CHATROOM DELETION');
         const socket = new Socket()
         const leaderId = ServiceLocator.leaderDAO.getLeaderId()
         const { host: leaderAddress, port: leaderPort } = new ServerList().getServer(leaderId);
