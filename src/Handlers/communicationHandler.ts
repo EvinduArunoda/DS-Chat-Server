@@ -8,4 +8,10 @@ export class CommunicationHandler  {
     broadcastCreateroom(data: any) {
         return CommunicationService.saveNewChatRoom(data);
     }
+    broadcastDeleteroom(data: any) {
+        return CommunicationService.deleteRoom(data);
+    }
+    broadcastQuit(data: any) {
+        return CommunicationService.deleteClient(data);
+    }
 }

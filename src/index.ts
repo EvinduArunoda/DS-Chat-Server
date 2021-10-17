@@ -3,12 +3,14 @@ import { readJSONfromBuffer } from "./Utils/utils";
 import { responseTypes } from "./Constants/responseTypes";
 import { ServiceLocator } from "./Utils/serviceLocator";
 import { LeaderService } from "./Services/leaderService"
+import { ElectionService } from "./Services/electionService";
 // server id
 if (!process.env.SERVER_ID) {
-    process.env['SERVER_ID'] = 's1';
+    process.env['SERVER_ID'] = '1';
 }
 if (!ServiceLocator.leaderDAO.getLeaderId()) {
-    ServiceLocator.leaderDAO.setLeaderId('s1')
+    ElectionService.startElection()
+    // ServiceLocator.leaderDAO.setLeaderId('1')
 }
 const server = net.createServer();
 
@@ -40,6 +42,11 @@ server.on('connection', (sock: Socket) => {
                 return ServiceLocator.mainHandler.getChatroomHandler().message(data, sock);
             case responseTypes.QUIT:
                 return ServiceLocator.mainHandler.getClientHandler().disconnect(sock, false);
+            //election
+            case "startelection":
+                return ServiceLocator.electionHandler.approveElection(data, sock)
+            case "declareleader":
+                return ServiceLocator.electionHandler.setElectedLeader(data)
             // leader functions
             case responseTypes.IS_CLIENT:
                 return ServiceLocator.mainHandler.getLeaderHandler().isClient(data, sock)
@@ -56,6 +63,10 @@ server.on('connection', (sock: Socket) => {
                 return ServiceLocator.mainHandler.getCommunicationHandler().broadcastNewIdentity(data)
             case responseTypes.BROADCAST_CREATEROOM:
                 return ServiceLocator.mainHandler.getCommunicationHandler().broadcastCreateroom(data)
+            case responseTypes.BROADCAST_DELETEROOM:
+                return ServiceLocator.mainHandler.getCommunicationHandler().broadcastDeleteroom(data)
+            case responseTypes.BROADCAST_QUIT:
+                return ServiceLocator.mainHandler.getCommunicationHandler().broadcastQuit(data)
             default:
                 break;
         }
