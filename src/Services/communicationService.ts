@@ -8,7 +8,7 @@ import { ElectionService } from "./electionService";
 export class CommunicationService {
     constructor() { }
 
-    static async isClientRegistered(identity: string): Promise<any> {
+    static async isClientRegistered(identity: string): Promise<boolean> {
         // Check if client id is unique and inform other servers
         // return true if id is NOT unique
         // return false if id is unique
@@ -16,7 +16,9 @@ export class CommunicationService {
         const leaderId = ServiceLocator.leaderDAO.getLeaderId()
         // TODO: check if the server is the leader before connecting
         if (parseInt(leaderId) === getServerId()) {
-
+            return new Promise((resolve, reject) => {
+                resolve(false)
+            })
         } else {
             const socket = new Socket()
             const { serverAddress: leaderAddress, coordinationPort: leaderPort } = new ServerList().getServer(leaderId);
@@ -119,13 +121,13 @@ export class CommunicationService {
         }
     }
 
-    static informChatroomDeletion(roomid: string): Promise<boolean> {
+    static informChatroomDeletion(roomid: string): Promise<any> {
         // inform other servers about chatroom deletion
         const leaderId = ServiceLocator.leaderDAO.getLeaderId()
         // TODO: check if the server is the leader before connecting
         if (parseInt(leaderId) === getServerId()) {
             return new Promise((resolve, reject) => {
-                resolve(false)
+                // resolve(true)
             })
         } else {
             const socket = new Socket()
@@ -153,14 +155,14 @@ export class CommunicationService {
         }
     }
 
-    static informClientDeletion(identity: string): Promise<boolean> {
+    static informClientDeletion(identity: string): Promise<any> {
         // check if the server is the leader before connecting
         // inform other servers about client deletion
         const leaderId = ServiceLocator.leaderDAO.getLeaderId()
         // TODO: check if the server is the leader before connecting
         if (parseInt(leaderId) === getServerId()) {
             return new Promise((resolve, reject) => {
-                resolve(false)
+                // resolve(true)
             })
         } else {
             const socket = new Socket()
