@@ -144,7 +144,7 @@ export class CommunicationService {
         // inform other servers about chatroom deletion
         const leaderId = ServiceLocator.leaderDAO.getLeaderId()
         const serverid = getServerId()
-        // TODO: check if the server is the leader before connecting
+        // check if the server is the leader before connecting
         if (leaderId === serverid) {
             return new Promise((resolve, reject) => {
                 ServiceLocator.foreignChatroomsDAO.removeChatroom(serverid, roomid);
@@ -183,7 +183,7 @@ export class CommunicationService {
         // inform other servers about client deletion
         const leaderId = ServiceLocator.leaderDAO.getLeaderId()
         const serverid = getServerId()
-        // TODO: check if the server is the leader before connecting
+        // check if the server is the leader before connecting
         if (leaderId === serverid) {
             return new Promise((resolve, reject) => {
                 ServiceLocator.foreignClientsDAO.removeClient(serverid, identity);
