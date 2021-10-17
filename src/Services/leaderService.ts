@@ -45,13 +45,14 @@ export class LeaderService {
 
     static broadcastServers(data: any) {
         const serverList = new ServerList()
-        serverList.getServerIds().filter(serverId => parseInt(serverId) != parseInt(getServerId())).forEach((serverId: string) => {
+        serverList.getServerIds().filter(serverId => parseInt(serverId) != getServerId()).forEach((serverId: string) => {
             const { host, port } = serverList.getServer(serverId);
             const socket = new Socket()
             socket.connect(port, host)
             writeJSONtoSocket(socket, data);
             socket.on('error', (err) => {
                 console.log('broadcast error:',err.message)
+                socket.end()
             })
         });
     }

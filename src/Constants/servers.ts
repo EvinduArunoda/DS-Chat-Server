@@ -1,5 +1,6 @@
 import _ from "lodash";
 import { Server, ServerInterface } from "../Interfaces/ServerInterface"
+import { getServerId } from "../Utils/utils";
 
 // TODO: Read from config file
 export class ServerList {
@@ -20,7 +21,7 @@ export class ServerList {
     getHigherUpServers(): Server[]{
         const higherUpServers = []
         for (let key in this.serverList){
-            if(key < (process.env.SERVER_ID as string)){
+            if(parseInt(key) < getServerId()){
                 higherUpServers.push(this.serverList[key])
             }
         }
