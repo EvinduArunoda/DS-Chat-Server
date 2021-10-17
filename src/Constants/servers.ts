@@ -20,7 +20,7 @@ export class ServerList {
     getHigherUpServers(): Server[]{
         const higherUpServers = []
         for (let key in this.serverList){
-            if(key < (process.env.SERVER_ID as string)){
+            if(parseInt(key) < parseInt(process.env.SERVER_ID as string)){
                 higherUpServers.push(this.serverList[key])
             }
         }

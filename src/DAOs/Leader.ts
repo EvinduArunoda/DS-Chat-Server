@@ -8,6 +8,7 @@ export class LeaderDAO {
     }
 
     setLeaderId(leaderId: string) {
+        console.log('SET LEADER', leaderId)
         this.leaderId = leaderId;
     }
 
