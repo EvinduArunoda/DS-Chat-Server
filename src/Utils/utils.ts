@@ -18,9 +18,9 @@ export function getMainHallId(): string {
     return `MainHall-s${getServerId()}`;
 }
 
-export function getServerId(): number {
+export function getServerId(): string {
     if (!process.env.SERVER_ID) {
-        return 1;
+        return '1';
     }
-    return parseInt(process.env.SERVER_ID);
+    return process.env.SERVER_ID;
 }

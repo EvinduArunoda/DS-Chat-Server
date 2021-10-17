@@ -4,6 +4,7 @@ import { ServerList } from "../Constants/servers";
 import { ServiceLocator } from "../Utils/serviceLocator";
 import { getServerId, readJSONfromBuffer, writeJSONtoSocket } from "../Utils/utils";
 import { ElectionService } from "./electionService";
+import { LeaderService } from "./leaderService";
 
 export class CommunicationService {
     constructor() { }
@@ -14,16 +15,25 @@ export class CommunicationService {
         // return false if id is unique
         // {type: 'isclient', identity: identity, serverid: serverid }
         const leaderId = ServiceLocator.leaderDAO.getLeaderId()
-        // TODO: check if the server is the leader before connecting
-        if (parseInt(leaderId) === getServerId()) {
+        const serverid = getServerId()
+        // check if the server is the leader before connecting
+        if (leaderId === serverid) {
             return new Promise((resolve, reject) => {
-                resolve(false)
+                // Check database
+                if (ServiceLocator.foreignClientsDAO.isRegistered(identity)) {
+                    resolve(true);
+                } else {
+                    ServiceLocator.foreignClientsDAO.addNewClient(serverid, identity)
+                    // Inform other servers
+                    LeaderService.broadcastServers({ type: responseTypes.BROADCAST_NEWIDENTITY, approved: true, identity, serverid })
+                    resolve(false);
+                }
             })
         } else {
             const socket = new Socket()
             const { serverAddress: leaderAddress, coordinationPort: leaderPort } = new ServerList().getServer(leaderId);
             socket.connect(leaderPort, leaderAddress)
-            writeJSONtoSocket(socket, { type: responseTypes.IS_CLIENT, identity, serverid: getServerId() })
+            writeJSONtoSocket(socket, { type: responseTypes.IS_CLIENT, identity, serverid })
             return new Promise((resolve, reject) => {
                 socket.on('data', (buffer) => {
                     const data = readJSONfromBuffer(buffer);
@@ -59,16 +69,24 @@ export class CommunicationService {
         // return false if id is unique
         // {type: 'ischatroom', roomid: roomid, serverid: serverid}
         const leaderId = ServiceLocator.leaderDAO.getLeaderId()
-        // TODO: check if the server is the leader before connecting
-        if (parseInt(leaderId) === getServerId()) {
+        const serverid = getServerId()
+        // check if the server is the leader before connecting
+        if (leaderId === serverid) {
             return new Promise((resolve, reject) => {
-                resolve(false)
+                if (ServiceLocator.foreignChatroomsDAO.isRegistered(roomid)) {
+                    resolve(true);
+                } else {
+                    ServiceLocator.foreignChatroomsDAO.addNewChatroom(serverid, roomid)
+                    // Inform other servers
+                    LeaderService.broadcastServers({ type: responseTypes.BROADCAST_CREATEROOM, approved: true, roomid, serverid })
+                    resolve(false);
+                }
             })
         } else {
             const socket = new Socket()
             const { serverAddress: leaderAddress, coordinationPort: leaderPort } = new ServerList().getServer(leaderId);
             socket.connect(leaderPort, leaderAddress)
-            writeJSONtoSocket(socket, { type: responseTypes.IS_CHATROOM, roomid, serverid: getServerId() })
+            writeJSONtoSocket(socket, { type: responseTypes.IS_CHATROOM, roomid, serverid })
             return new Promise((resolve, reject) => {
                 socket.on('data', (buffer) => {
                     const data = readJSONfromBuffer(buffer);
@@ -101,10 +119,11 @@ export class CommunicationService {
         // return undefined if not found
         // {type:'chatroomserver', roomid:roomid}
         const leaderId = ServiceLocator.leaderDAO.getLeaderId()
-        // TODO: check if the server is the leader before connecting
-        if (parseInt(leaderId) === getServerId()) {
+        const serverid = getServerId()
+        // check if the server is the leader before connecting
+        if (leaderId === serverid) {
             return new Promise((resolve, reject) => {
-                resolve(undefined)
+                resolve(ServiceLocator.foreignChatroomsDAO.getChatroomServer(roomid))
             })
         } else {
             const socket = new Socket()
@@ -124,16 +143,20 @@ export class CommunicationService {
     static informChatroomDeletion(roomid: string): Promise<any> {
         // inform other servers about chatroom deletion
         const leaderId = ServiceLocator.leaderDAO.getLeaderId()
+        const serverid = getServerId()
         // TODO: check if the server is the leader before connecting
-        if (parseInt(leaderId) === getServerId()) {
+        if (leaderId === serverid) {
             return new Promise((resolve, reject) => {
-                // resolve(true)
+                ServiceLocator.foreignChatroomsDAO.removeChatroom(serverid, roomid);
+                // inform other servers
+                LeaderService.broadcastServers({ type: responseTypes.BROADCAST_DELETEROOM, roomid, serverid })
+                resolve(true)
             })
         } else {
             const socket = new Socket()
             const { serverAddress: leaderAddress, coordinationPort: leaderPort } = new ServerList().getServer(leaderId);
             socket.connect(leaderPort, leaderAddress)
-            writeJSONtoSocket(socket, { type: responseTypes.INFORM_ROOMDELETION, roomid, serverid: getServerId() })
+            writeJSONtoSocket(socket, { type: responseTypes.INFORM_ROOMDELETION, roomid, serverid })
             return new Promise((resolve, reject) => {
                 socket.on('data', (buffer) => {
                     const data = readJSONfromBuffer(buffer);
@@ -159,16 +182,20 @@ export class CommunicationService {
         // check if the server is the leader before connecting
         // inform other servers about client deletion
         const leaderId = ServiceLocator.leaderDAO.getLeaderId()
+        const serverid = getServerId()
         // TODO: check if the server is the leader before connecting
-        if (parseInt(leaderId) === getServerId()) {
+        if (leaderId === serverid) {
             return new Promise((resolve, reject) => {
-                // resolve(true)
+                ServiceLocator.foreignClientsDAO.removeClient(serverid, identity);
+                // inform other servers
+                LeaderService.broadcastServers({ type: responseTypes.BROADCAST_QUIT, identity, serverid })
+                resolve(true)
             })
         } else {
             const socket = new Socket()
             const { serverAddress: leaderAddress, coordinationPort: leaderPort } = new ServerList().getServer(leaderId);
             socket.connect(leaderPort, leaderAddress)
-            writeJSONtoSocket(socket, { type: responseTypes.INFORM_CLIENTDELETION, identity, serverid: getServerId() })
+            writeJSONtoSocket(socket, { type: responseTypes.INFORM_CLIENTDELETION, identity, serverid })
             return new Promise((resolve, reject) => {
                 socket.on('data', (buffer) => {
                     const data = readJSONfromBuffer(buffer);

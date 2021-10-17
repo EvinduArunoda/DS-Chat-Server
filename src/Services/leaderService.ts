@@ -45,7 +45,7 @@ export class LeaderService {
 
     static broadcastServers(data: any) {
         const serverList = new ServerList()
-        serverList.getServerIds().filter(serverId => parseInt(serverId) != getServerId()).forEach((serverId: string) => {
+        serverList.getServerIds().filter(serverId => serverId != getServerId()).forEach((serverId: string) => {
             const { serverAddress: host, coordinationPort: port } = serverList.getServer(serverId);
             const socket = new Socket()
             socket.connect(port, host)
