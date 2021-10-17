@@ -47,7 +47,7 @@ export class LeaderService {
         const serverList = new ServerList()
         const socket = new Socket()
         serverList.getServerIds().filter(serverId => serverId !== getServerId()).forEach((serverId: string) => {
-            const { host, port } = serverList.getServer(serverId);
+            const { serverAddress: host, coordinationPort: port } = serverList.getServer(serverId);
             socket.connect(port, host)
             writeJSONtoSocket(socket, data);
         });
@@ -57,7 +57,8 @@ export class LeaderService {
         const { roomid, serverid } = data
         ServiceLocator.foreignChatroomsDAO.removeChatroom(serverid, roomid);
         writeJSONtoSocket(sock, { acknowledged: true, type: responseTypes.INFORM_ROOMDELETION, roomid });
-        //TODO: broad cast to others
+        // inform other servers
+        LeaderService.broadcastServers({ type: responseTypes.BROADCAST_DELETEROOM, approved: true, roomid, serverid })
         return true
     }
 
@@ -65,7 +66,8 @@ export class LeaderService {
         const { identity, serverid } = data
         ServiceLocator.foreignClientsDAO.removeClient(serverid, identity);
         writeJSONtoSocket(sock, { acknowledged: true, type: responseTypes.INFORM_CLIENTDELETION, identity });
-        //TODO: broad cast to others
+        // inform other servers
+        LeaderService.broadcastServers({ type: responseTypes.BROADCAST_DELETEIDENTITY, approved: true, identity, serverid })
         return true
     }
 }

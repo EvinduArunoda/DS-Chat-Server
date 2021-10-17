@@ -19,5 +19,8 @@ export function getMainHallId(): string {
 }
 
 export function getServerId(): string {
-    return `${process.env.SERVER_ID}`;
+    if (!process.env.SERVER_ID) {
+        return 's1';
+    }
+    return process.env.SERVER_ID;
 }

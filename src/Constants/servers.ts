@@ -4,8 +4,8 @@ import { Server, ServerInterface } from "../Interfaces/ServerInterface"
 
 export class ServerList {
     private serverList: ServerInterface = {
-        s1: { host: 'localhost', port: 4444 },
-        s2: { host: 'localhost', port: 4445 }
+        s1: { serverAddress: 'localhost', clientsPort: 4444, coordinationPort: 5555 },
+        s2: { serverAddress: 'localhost', clientsPort: 4445, coordinationPort: 5555 }
     }
 
     getServerIds(): string[] {

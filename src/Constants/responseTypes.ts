@@ -18,6 +18,7 @@ export const responseTypes = {
     IS_CHATROOM: "ischatroom",
     CHATROOM_SERVER: "chatroomserver",
     BROADCAST_NEWIDENTITY: "broadcastnewidentity",
+    BROADCAST_DELETEIDENTITY: "broadcastdeleteidentity",
     BROADCAST_CREATEROOM: "broadcastcreateroom",
     BROADCAST_DELETEROOM: "broadcastdeleteroom",
     BROADCAST_QUIT: "broadcastquit",
