@@ -1,4 +1,4 @@
-import { getMainHallId, isValidIdentity, writeJSONtoSocket } from "../Utils/utils";
+import { getMainHallId, getServerId, isValidIdentity, writeJSONtoSocket } from "../Utils/utils";
 import { ServiceLocator } from "../Utils/serviceLocator";
 import { Socket } from "net";
 import { responseTypes } from "../Constants/responseTypes";
@@ -66,7 +66,7 @@ export class ChatroomService {
         if (!isValidIdentity(roomid) || ServiceLocator.chatroomDAO.isOwner(identity, former) || ServiceLocator.chatroomDAO.isRegistered(roomid)) {
             writeJSONtoSocket(sock, { type: responseTypes.CREATE_ROOM, roomid, approved: "false" });
         // check if id is unique and inform other servers
-        } else if (await CommunicationService.isChatroomRegistered(roomid)){
+        } else if (getServerId() !== parseInt(ServiceLocator.leaderDAO.getLeaderId()) && await CommunicationService.isChatroomRegistered(roomid)){
             writeJSONtoSocket(sock, { type: responseTypes.CREATE_ROOM, roomid, approved: "false" });
         }
         else {
