@@ -8,6 +8,7 @@ import { ElectionService } from "./Services/electionService";
 
 
 const { serverAddress, coordinationPort, clientsPort } = new ServerList().getServer(getServerId().toString());
+ServiceLocator.leaderDAO.setLeaderId('1')
 
 // server for cleints
 const server = net.createServer();
