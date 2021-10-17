@@ -1,11 +1,12 @@
 import _ from "lodash";
 import { Server, ServerInterface } from "../Interfaces/ServerInterface"
+import { getServerId } from "../Utils/utils";
 
-
+// TODO: Read from config file
 export class ServerList {
     private serverList: ServerInterface = {
-        s1: { serverAddress: 'localhost', clientsPort: 4444, coordinationPort: 5555 },
-        s2: { serverAddress: 'localhost', clientsPort: 4445, coordinationPort: 5555 }
+        1: { serverAddress: 'localhost', clientsPort: 4444, coordinationPort: 5555 },
+        2: { serverAddress: 'localhost', clientsPort: 4445, coordinationPort: 5555 }
     }
 
     getServerIds(): string[] {
@@ -14,6 +15,16 @@ export class ServerList {
 
     getServer(serverid: string): Server {
         return this.serverList[serverid];
+    }
+
+    getHigherUpServers(): Server[]{
+        const higherUpServers = []
+        for (let key in this.serverList){
+            if(parseInt(key) < getServerId()){
+                higherUpServers.push(this.serverList[key])
+            }
+        }
+        return higherUpServers
     }
 
 }

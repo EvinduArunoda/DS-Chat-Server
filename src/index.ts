@@ -3,9 +3,11 @@ import { getServerId, readJSONfromBuffer } from "./Utils/utils";
 import { responseTypes } from "./Constants/responseTypes";
 import { ServiceLocator } from "./Utils/serviceLocator";
 import { ServerList } from "./Constants/servers";
+import { LeaderService } from "./Services/leaderService"
+import { ElectionService } from "./Services/electionService";
 
 
-const { serverAddress, coordinationPort, clientsPort } = new ServerList().getServer(getServerId());
+const { serverAddress, coordinationPort, clientsPort } = new ServerList().getServer(getServerId().toString());
 
 // server for cleints
 const server = net.createServer();
@@ -74,6 +76,11 @@ coordinationServer.on('connection', (sock: Socket) => {
         console.log(data)
 
         switch (data.type) {
+            //election
+            case "startelection":
+                return ServiceLocator.electionHandler.approveElection(data, sock)
+            case "declareleader":
+                return ServiceLocator.electionHandler.setElectedLeader(data)
             // recieved by leader
             case responseTypes.IS_CLIENT:
                 return ServiceLocator.mainHandler.getLeaderHandler().isClient(data, sock)
@@ -90,10 +97,10 @@ coordinationServer.on('connection', (sock: Socket) => {
                 return ServiceLocator.mainHandler.getCommunicationHandler().broadcastNewIdentity(data)
             case responseTypes.BROADCAST_CREATEROOM:
                 return ServiceLocator.mainHandler.getCommunicationHandler().broadcastCreateroom(data)
-            case responseTypes.BROADCAST_DELETEIDENTITY:
-                return ServiceLocator.mainHandler.getCommunicationHandler().broadcastDeleteIdentity(data)
             case responseTypes.BROADCAST_DELETEROOM:
                 return ServiceLocator.mainHandler.getCommunicationHandler().broadcastDeleteroom(data)
+            case responseTypes.BROADCAST_QUIT:
+                return ServiceLocator.mainHandler.getCommunicationHandler().broadcastQuit(data)
             default:
                 break;
         }

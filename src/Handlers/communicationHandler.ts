@@ -5,7 +5,7 @@ export class CommunicationHandler  {
     broadcastNewIdentity(data: any) {
         return CommunicationService.saveNewIdentity(data);
     }
-    broadcastDeleteIdentity(data: any) {
+    broadcastQuit(data: any) {
         return CommunicationService.deleteIdentity(data);
     }
     broadcastCreateroom(data: any) {

@@ -3,6 +3,7 @@ import { responseTypes } from "../Constants/responseTypes";
 import { ServerList } from "../Constants/servers";
 import { ServiceLocator } from "../Utils/serviceLocator";
 import { getServerId, readJSONfromBuffer, writeJSONtoSocket } from "../Utils/utils";
+import { ElectionService } from "./electionService";
 
 export class CommunicationService {
     constructor() { }
@@ -14,7 +15,7 @@ export class CommunicationService {
         // {type: 'isclient', identity: identity, serverid: serverid }
         const leaderId = ServiceLocator.leaderDAO.getLeaderId()
         // TODO: check if the server is the leader before connecting
-        if (leaderId === getServerId()) {
+        if (parseInt(leaderId) === getServerId()) {
 
         } else {
             const socket = new Socket()
@@ -31,19 +32,33 @@ export class CommunicationService {
                         resolve(false)
                     }
                 });
+
+                socket.on('error', (error) => {
+                    ElectionService.startElection().then(leaderId => {
+                        ServiceLocator.leaderDAO.setLeaderId(leaderId)
+                        resolve(CommunicationService.isClientRegistered(identity))
+                    })
+                        .catch(err => {
+                            console.log('error', err.message)
+                        })
+                });
+
                 socket.end();
             })
         }
     }
 
+
+
     static isChatroomRegistered(roomid: string): Promise<boolean> {
+        // check if the server is the leader before connecting
         // Check if room id is unique and inform other servers
         // return true if id is NOT unique
         // return false if id is unique
         // {type: 'ischatroom', roomid: roomid, serverid: serverid}
         const leaderId = ServiceLocator.leaderDAO.getLeaderId()
         // TODO: check if the server is the leader before connecting
-        if (leaderId === getServerId()) {
+        if (parseInt(leaderId) === getServerId()) {
             return new Promise((resolve, reject) => {
                 resolve(false)
             })
@@ -62,20 +77,30 @@ export class CommunicationService {
                         resolve(false)
                     }
                 });
+
+                socket.on('error', (error) => {
+                    ElectionService.startElection().then(leaderId => {
+                        ServiceLocator.leaderDAO.setLeaderId(leaderId)
+                        resolve(CommunicationService.isChatroomRegistered(roomid))
+                    })
+                        .catch(err => {
+                            console.log('error', err.message)
+                        })
+                });
                 socket.end();
             })
         }
     }
 
     static getChatroomRegisteredServer(roomid: string): Promise<string | undefined> {
-        // TODO: check if the server is the leader before connecting
+        // check if the server is the leader before connecting
         // check if the room is in another server
         // return server id
         // return undefined if not found
         // {type:'chatroomserver', roomid:roomid}
         const leaderId = ServiceLocator.leaderDAO.getLeaderId()
         // TODO: check if the server is the leader before connecting
-        if (leaderId === getServerId()) {
+        if (parseInt(leaderId) === getServerId()) {
             return new Promise((resolve, reject) => {
                 resolve(undefined)
             })
@@ -98,7 +123,7 @@ export class CommunicationService {
         // inform other servers about chatroom deletion
         const leaderId = ServiceLocator.leaderDAO.getLeaderId()
         // TODO: check if the server is the leader before connecting
-        if (leaderId === getServerId()) {
+        if (parseInt(leaderId) === getServerId()) {
             return new Promise((resolve, reject) => {
                 resolve(false)
             })
@@ -112,16 +137,28 @@ export class CommunicationService {
                     const data = readJSONfromBuffer(buffer);
                     resolve(data.acknowledged)
                 });
+
+                socket.on('error', (error) => {
+                    ElectionService.startElection().then(leaderId => {
+                        ServiceLocator.leaderDAO.setLeaderId(leaderId)
+                        resolve(CommunicationService.informChatroomDeletion(roomid))
+                    })
+                        .catch(err => {
+                            console.log('error', err.message)
+                        })
+                });
+
                 socket.end();
             })
         }
     }
 
     static informClientDeletion(identity: string): Promise<boolean> {
+        // check if the server is the leader before connecting
         // inform other servers about client deletion
         const leaderId = ServiceLocator.leaderDAO.getLeaderId()
         // TODO: check if the server is the leader before connecting
-        if (leaderId === getServerId()) {
+        if (parseInt(leaderId) === getServerId()) {
             return new Promise((resolve, reject) => {
                 resolve(false)
             })
@@ -134,6 +171,16 @@ export class CommunicationService {
                 socket.on('data', (buffer) => {
                     const data = readJSONfromBuffer(buffer);
                     resolve(data.acknowledged)
+                });
+
+                socket.on('error', (error) => {
+                    ElectionService.startElection().then(leaderId => {
+                        ServiceLocator.leaderDAO.setLeaderId(leaderId)
+                        resolve(CommunicationService.informClientDeletion(identity))
+                    })
+                        .catch(err => {
+                            console.log('error', err.message)
+                        })
                 });
                 socket.end();
             })
