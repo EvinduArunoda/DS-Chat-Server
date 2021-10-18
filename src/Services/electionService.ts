@@ -7,22 +7,22 @@ import { LeaderService } from "./leaderService";
 
 export class ElectionService {
     static setElectedLeader(data: any): boolean {
-        const {serverid : leaderid} = data
+        const { serverid: leaderid } = data
         ServiceLocator.leaderDAO.setLeaderId(leaderid)
         console.log('leaderid', leaderid)
         return true
     }
 
     static async approveElection(data: any, sock: Socket): Promise<boolean> {
-        const {serverid} = data
-        if(serverid > getServerId()){
+        const { serverid } = data
+        if (serverid > getServerId()) {
             writeJSONtoSocket(sock, { type: "startelection", serverid, approved: false })
             ElectionService.startElection().then(leaderId => {
                 ServiceLocator.leaderDAO.setLeaderId(leaderId)
             })
-            .catch(err => {
-                console.log('error', err.message)
-            })
+                .catch(err => {
+                    console.log('error', err.message)
+                })
         }
         return true
     }
@@ -39,15 +39,15 @@ export class ElectionService {
         const higherUpServers = new ServerList().getHigherUpServers()
         console.log('Higher up', higherUpServers)
 
-        if(higherUpServers.length < 1){
+        if (higherUpServers.length < 1) {
             const leaderId = getServerId()
-            LeaderService.broadcastServers({type: "declareleader", serverid: leaderId})
+            LeaderService.broadcastServers({ type: "declareleader", serverid: leaderId })
             return leaderId
         }
 
         higherUpServers.forEach(server => {
             const socket = new Socket()
-            const { host, port } = server
+            const { serverAddress: host, coordinationPort: port } = server
             socket.connect(port, host)
             socket.setTimeout(T0);
             writeJSONtoSocket(socket, { type: "startelection", serverid: getServerId() })
@@ -78,12 +78,12 @@ export class ElectionService {
                         const leaderId = getServerId()
                         console.log(`Elect myself (${leaderId}) as leader due to timeout`)
                         ServiceLocator.leaderDAO.setLeaderId(leaderId.toString())
-                        LeaderService.broadcastServers({type: "declareleader", serverid: leaderId})
+                        LeaderService.broadcastServers({ type: "declareleader", serverid: leaderId })
                         console.log(getServerId())
                         resolve(leaderId)
-                    }else{
+                    } else {
                         resolve(ServiceLocator.leaderDAO.getLeaderId())
-                    }                    
+                    }
                     socket.end();
                 });
 
@@ -95,12 +95,12 @@ export class ElectionService {
                             const leaderId = getServerId()
                             console.log(`Elect myself (${leaderId}) as leader due to error`)
                             ServiceLocator.leaderDAO.setLeaderId(leaderId.toString())
-                            LeaderService.broadcastServers({type: "declareleader", serverid: leaderId})
+                            LeaderService.broadcastServers({ type: "declareleader", serverid: leaderId })
                             console.log(getServerId())
                             resolve(leaderId)
-                        }else{
+                        } else {
                             resolve(ServiceLocator.leaderDAO.getLeaderId())
-                        }        
+                        }
                         socket.end();
                     }, T3)
                 });

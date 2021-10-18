@@ -53,22 +53,6 @@ export class ServiceLocator {
         return this._instances.get(key);
     }
 
-    static get charoomHandler(): ChatroomHandler {
-        const key = 'chatroom_handler';
-        if (!this._instances.get(key)) {
-            this._instances.set(key, new ChatroomHandler());
-        }
-        return this._instances.get(key);
-    }
-
-    static get clientHandler(): ClientHandler {
-        const key = 'client_handler';
-        if (!this._instances.get(key)) {
-            this._instances.set(key, new ClientHandler());
-        }
-        return this._instances.get(key);
-    }
-
     static get mainHandler(): MainHandler {
         const key = 'main_handler';
         if (!this._instances.get(key)) {

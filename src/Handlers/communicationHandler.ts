@@ -5,13 +5,13 @@ export class CommunicationHandler  {
     broadcastNewIdentity(data: any) {
         return CommunicationService.saveNewIdentity(data);
     }
+    broadcastQuit(data: any) {
+        return CommunicationService.deleteIdentity(data);
+    }
     broadcastCreateroom(data: any) {
         return CommunicationService.saveNewChatRoom(data);
     }
     broadcastDeleteroom(data: any) {
-        return CommunicationService.deleteRoom(data);
-    }
-    broadcastQuit(data: any) {
-        return CommunicationService.deleteClient(data);
+        return CommunicationService.deleteChatRoom(data);
     }
 }
