@@ -3,7 +3,8 @@ import { responseTypes } from "../Constants/responseTypes";
 import { ServerList } from "../Constants/servers";
 import { ServiceLocator } from "../Utils/serviceLocator";
 import { getServerId, readJSONfromBuffer, writeJSONtoSocket } from "../Utils/utils";
-import { ElectionService } from "./electionService";
+import {LeaderService} from "./leaderService";
+import {ElectionService} from "./electionService";
 
 export class CommunicationService {
     constructor() { }
@@ -14,11 +15,14 @@ export class CommunicationService {
         // return true if id is NOT unique
         // return false if id is unique
         // {type: 'isclient', identity: identity, serverid: serverid }
+        console.log('IS CLIENT REGISTERED ')
         const socket = new Socket()
         const leaderId = ServiceLocator.leaderDAO.getLeaderId()
         const { host: leaderAddress, port: leaderPort } = new ServerList().getServer(leaderId);
         socket.connect(leaderPort, leaderAddress)
         writeJSONtoSocket(socket, { type: responseTypes.IS_CLIENT, identity, serverid: getServerId() })
+
+
         return new Promise((resolve, reject) => {
             socket.on('data', (buffer) => {
                 const data = readJSONfromBuffer(buffer);
@@ -30,16 +34,11 @@ export class CommunicationService {
                 }
             });
 
-            socket.on('error', (error) => {
-                ElectionService.startElection().then(leaderId => {
-                    ServiceLocator.leaderDAO.setLeaderId(leaderId)
-                    resolve(CommunicationService.isClientRegistered(identity))
-                })
-                .catch(err => {
-                    console.log('error', err.message)
-                })
+            socket.on('error', async () => {
+                console.log('IS CLIENT REGISTERED SOCKET ERROR*')
+                const res = await ElectionService.startElection();
+                resolve(await this.isClientRegistered(identity))
             });
-
             socket.end();
         })
     }
@@ -67,8 +66,7 @@ export class CommunicationService {
             });
 
             socket.on('error', (error) => {
-                ElectionService.startElection().then(leaderId => {
-                    ServiceLocator.leaderDAO.setLeaderId(leaderId)
+                ElectionService.startElection().then(() => {
                     resolve(CommunicationService.isChatroomRegistered(roomid))
                 })
                 .catch(err => {
@@ -97,8 +95,7 @@ export class CommunicationService {
             });
 
             socket.on('error', (error) => {
-                ElectionService.startElection().then(leaderId => {
-                    ServiceLocator.leaderDAO.setLeaderId(leaderId)
+                ElectionService.startElection().then(() => {
                     resolve(CommunicationService.getChatroomRegisteredServer(roomid))
                 })
                 .catch(err => {
@@ -126,8 +123,7 @@ export class CommunicationService {
             });
 
             socket.on('error', (error) => {
-                ElectionService.startElection().then(leaderId => {
-                    ServiceLocator.leaderDAO.setLeaderId(leaderId)
+                ElectionService.startElection().then(() => {
                     resolve(CommunicationService.informChatroomDeletion(roomid))
                 })
                 .catch(err => {
@@ -154,8 +150,7 @@ export class CommunicationService {
             });
 
             socket.on('error', (error) => {
-                ElectionService.startElection().then(leaderId => {
-                    ServiceLocator.leaderDAO.setLeaderId(leaderId)
+                ElectionService.startElection().then(() => {
                     resolve(CommunicationService.informClientDeletion(identity))
                 })
                 .catch(err => {
