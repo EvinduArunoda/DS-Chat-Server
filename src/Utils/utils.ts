@@ -15,9 +15,12 @@ export function isValidIdentity(identity: string): boolean {
 }
 
 export function getMainHallId(): string {
-    return `MainHall-s${process.env.SERVER_ID}`;
+    return `MainHall-s${getServerId()}`;
 }
 
-export function getServerId(): number {
-    return parseInt(`${process.env.SERVER_ID}`);
+export function getServerId(): string {
+    if (!process.env.SERVER_ID) {
+        return '1';
+    }
+    return process.env.SERVER_ID;
 }

@@ -3,6 +3,7 @@ export interface ServerInterface {
 }
 
 export interface Server {
-    host: string
-    port: number
+    serverAddress: string
+    clientsPort: number
+    coordinationPort: number
 }

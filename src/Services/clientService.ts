@@ -1,5 +1,5 @@
 import { Socket } from "net";
-import { getMainHallId, getServerId, isValidIdentity, writeJSONtoSocket } from "../Utils/utils";
+import { getMainHallId, isValidIdentity, writeJSONtoSocket } from "../Utils/utils";
 import { ServiceLocator } from "../Utils/serviceLocator";
 import { ChatroomService } from "./chatroomService";
 import { responseTypes } from "../Constants/responseTypes";
@@ -13,7 +13,7 @@ export class ClientService {
         if (!isValidIdentity(identity) || ServiceLocator.clientsDAO.isRegistered(identity)) {
             writeJSONtoSocket(sock, { type: responseTypes.NEW_IDENTITY, approved: "false" });
         // check if id is unique and inform other servers
-        } else if(getServerId() !== parseInt(ServiceLocator.leaderDAO.getLeaderId()) && await CommunicationService.isClientRegistered(identity)) {
+        } else if(await CommunicationService.isClientRegistered(identity)) {
             writeJSONtoSocket(sock, { type: responseTypes.NEW_IDENTITY, approved: "false" });
         } else {
             ServiceLocator.clientsDAO.addNewClient(identity, sock);
