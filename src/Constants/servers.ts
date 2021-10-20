@@ -6,7 +6,8 @@ import { getServerId } from "../Utils/utils";
 export class ServerList {
     private serverList: ServerInterface = {
         1: { serverAddress: 'localhost', clientsPort: 4444, coordinationPort: 5555 },
-        2: { serverAddress: 'localhost', clientsPort: 4445, coordinationPort: 5555 }
+        2: { serverAddress: 'localhost', clientsPort: 4445, coordinationPort: 5556 },
+        3: { serverAddress: 'localhost', clientsPort: 4446, coordinationPort: 5557 },
     }
 
     getServerIds(): string[] {
@@ -14,7 +15,7 @@ export class ServerList {
     }
 
     getServer(serverid: string): Server {
-        return this.serverList[serverid];
+        return this.serverList[parseInt(serverid)];
     }
 
     getHigherUpServers(): Server[]{

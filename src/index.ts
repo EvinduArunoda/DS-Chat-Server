@@ -7,8 +7,16 @@ import { LeaderService } from "./Services/leaderService"
 import { ElectionService } from "./Services/electionService";
 
 
+// server id
+if (!process.env.SERVER_ID) {
+    process.env['SERVER_ID'] = '1';
+}
+
 const { serverAddress, coordinationPort, clientsPort } = new ServerList().getServer(getServerId().toString());
-ServiceLocator.leaderDAO.setLeaderId('1')
+
+if (!ServiceLocator.leaderDAO.getLeaderId()) {
+    ElectionService.startElection()
+}
 
 // server for cleints
 const server = net.createServer();
