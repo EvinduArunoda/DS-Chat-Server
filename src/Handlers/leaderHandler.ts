@@ -17,4 +17,7 @@ export class LeaderHandler  {
     informClientDeletion(data: any, sock: Socket): boolean {
         return LeaderService.acknowledgeClientDeletion(data, sock);
     }
+    provideLeaderState(sock: Socket): boolean {
+        return LeaderService.provideLeaderState(sock);
+    }
 }

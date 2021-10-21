@@ -212,6 +212,60 @@ export class CommunicationService {
         }
     }
 
+    static requestLeaderId() {
+        const serverList = new ServerList()
+        serverList.getServerIds().filter(serverId => serverId != getServerId()).forEach((serverId: string) => {
+            const { serverAddress: host, coordinationPort: port } = serverList.getServer(serverId);
+            const socket = new Socket()
+            socket.connect(port, host)
+            writeJSONtoSocket(socket, { type: "requestleaderid"})
+
+            socket.on('data', (buffer) => {
+                const data = readJSONfromBuffer(buffer);
+                console.log('on data, request leader id', data)
+                const leaderId = data.leaderid
+                if(leaderId !== ''){
+                    ServiceLocator.leaderDAO.setLeaderId(leaderId)
+                    if(parseInt(leaderId) > parseInt(getServerId())){
+                        ElectionService.startElection().then(() => {
+                            this.requestDataFromLeader(leaderId)
+                        })
+                    }else{
+                        this.requestDataFromLeader(leaderId)
+                    }
+                }
+            });
+
+            socket.on('error', (err) => {
+                console.log(' request leader id broadcast error:',err.message)
+                socket.end()
+            })
+        });
+    }
+
+    static informLeaderId(data: any, sock: Socket) {
+        writeJSONtoSocket(sock, { type: "requestleaderid", leaderid: ServiceLocator.leaderDAO.getLeaderId()})
+    }
+
+    static requestDataFromLeader(leaderId: string) {
+        const socket = new Socket()
+        const { serverAddress: leaderAddress, coordinationPort: leaderPort } = new ServerList().getServer(leaderId);
+        socket.connect(leaderPort, leaderAddress)
+        writeJSONtoSocket(socket, { type: "requestdata"})
+        
+        socket.on('data', (buffer) => {
+            const {clients, chatrooms} = readJSONfromBuffer(buffer);
+            console.log('clients', clients)
+            console.log('chatrooms', chatrooms)
+        });
+
+        socket.on('error', (err) => {
+            console.log('error:',err.message)
+            socket.end()
+        })
+
+    }
+
     static saveNewIdentity(data: any) {
         const { identity, serverid } = data
         ServiceLocator.foreignClientsDAO.addNewClient(serverid, identity)

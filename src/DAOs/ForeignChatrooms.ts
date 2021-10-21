@@ -49,7 +49,7 @@ export class ForeignChatroomsDAO {
      * @param serverid server id
      */
     addNewChatroom(serverid: string, roomid: string): void {
-        if(this.chatrooms[serverid] === undefined){
+        if (this.chatrooms[serverid] === undefined) {
             this.chatrooms[serverid] = new Set()
         }
         this.chatrooms[serverid].add(roomid);
@@ -64,6 +64,14 @@ export class ForeignChatroomsDAO {
     removeChatroom(serverid: string, roomid: string): void {
         this.chatrooms[serverid].delete(roomid)
         console.log("ForeignChatroomsDAO.deleteChatroom", serverid, roomid);
+    }
+
+    /**
+     * get chatrooms
+     * @returns ForeignChatroomInterface
+     */
+    getChatrooms(): ForeignChatroomInterface {
+        return this.chatrooms
     }
 
 }

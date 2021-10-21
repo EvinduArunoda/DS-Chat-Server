@@ -1,5 +1,5 @@
 export interface ServerInterface {
-    [key:string]: Server
+    [key:number]: Server
 }
 
 export interface Server {
