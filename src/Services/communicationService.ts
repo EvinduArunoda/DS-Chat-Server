@@ -213,33 +213,69 @@ export class CommunicationService {
     }
 
     static requestLeaderId() {
+        console.log('REQUEST LEADER ID')
         const serverList = new ServerList()
-        serverList.getServerIds().filter(serverId => serverId != getServerId()).forEach((serverId: string) => {
+        //add all requests to promisesList
+        const promisesList: Array<Promise<any>> = [];
+
+        serverList.getServerIds().filter(serverId => parseInt(serverId) != parseInt(getServerId())).forEach((serverId: string) => {
             const { serverAddress: host, coordinationPort: port } = serverList.getServer(serverId);
             const socket = new Socket()
             socket.connect(port, host)
+            socket.setTimeout(10000);
             writeJSONtoSocket(socket, { type: "requestleaderid"})
+            const promise = new Promise((resolve, reject) => {
+                socket.on('data', (buffer) => {
+                    const data = readJSONfromBuffer(buffer);
+                    const leaderId = data.leaderid
+                    resolve(leaderId)
+                    socket.end()
+                });
 
-            socket.on('data', (buffer) => {
-                const data = readJSONfromBuffer(buffer);
-                console.log('on data, request leader id', data)
-                const leaderId = data.leaderid
-                if(leaderId !== ''){
-                    ServiceLocator.leaderDAO.setLeaderId(leaderId)
+                socket.on('timeout', () => {
+                    resolve('')
+                    socket.end()
+                });
+
+                socket.on('error', (err) => {
+                    console.log(' request leader id broadcast error:',err.message)
+                    resolve('')
+                    socket.end()
+                })
+            });
+            promisesList.push(promise);
+        });
+
+        Promise.all(promisesList).then((values) => {
+            console.log('VALUES LIST FROM PROMISES ALL', values);
+            //remove duplicates
+            let uniq = [...new Set(values)];
+
+            //only one id
+            if(uniq.length === 1){
+                if(uniq[0] === ""){
+                    //    start election
+                    ElectionService.startElection()
+                }
+                if(uniq[0] != ""){
+                    const leaderId = (uniq[0])
                     if(parseInt(leaderId) > parseInt(getServerId())){
+                        //    start election and request data
                         ElectionService.startElection().then(() => {
                             this.requestDataFromLeader(leaderId)
                         })
-                    }else{
+                    }else if (parseInt(leaderId) < parseInt(getServerId())){
+                        //    set leader id
+                        //    request data
+                        ServiceLocator.leaderDAO.setLeaderId(leaderId)
                         this.requestDataFromLeader(leaderId)
                     }
                 }
-            });
+            }else{
+                //multiple values
+                console.log('multiple values from list- current leader id', ServiceLocator.leaderDAO.getLeaderId());
+            }
 
-            socket.on('error', (err) => {
-                console.log(' request leader id broadcast error:',err.message)
-                socket.end()
-            })
         });
     }
 
@@ -248,11 +284,12 @@ export class CommunicationService {
     }
 
     static requestDataFromLeader(leaderId: string) {
+        console.log('requestDataFromLeader id', ServiceLocator.leaderDAO.getLeaderId(), getServerId())
         const socket = new Socket()
         const { serverAddress: leaderAddress, coordinationPort: leaderPort } = new ServerList().getServer(leaderId);
         socket.connect(leaderPort, leaderAddress)
         writeJSONtoSocket(socket, { type: "requestdata"})
-        
+
         socket.on('data', (buffer) => {
             const {clients, chatrooms} = readJSONfromBuffer(buffer);
             console.log('clients', clients)
