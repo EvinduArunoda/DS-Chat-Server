@@ -1,5 +1,14 @@
+interface leaderIDsByServer {
+    [key:number]: string
+}
+
 export class LeaderDAO {
     private leaderId: string = '';
+    private leaderIDsByServer: leaderIDsByServer = {
+        1: "",
+        2: "",
+        3: "",
+    };
 
     constructor() { }
 
@@ -12,4 +21,8 @@ export class LeaderDAO {
         this.leaderId = leaderId;
     }
 
+    setLeaderIdByServer(leaderId: string, serverid:string) {
+        console.log('SET LEADER', leaderId)
+        this.leaderIDsByServer[parseInt(serverid)] = leaderId;
+    }
 }
