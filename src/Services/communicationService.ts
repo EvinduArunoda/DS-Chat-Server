@@ -264,7 +264,7 @@ export class CommunicationService {
                         ElectionService.startElection().then(() => {
                             this.requestDataFromLeader(leaderId)
                         })
-                    }else if (parseInt(leaderId) < parseInt(getServerId())){
+                    }else{
                         //    set leader id
                         //    request data
                         ServiceLocator.leaderDAO.setLeaderId(leaderId)
