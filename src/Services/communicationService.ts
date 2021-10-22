@@ -3,8 +3,8 @@ import { responseTypes } from "../Constants/responseTypes";
 import { ServerList } from "../Constants/servers";
 import { ServiceLocator } from "../Utils/serviceLocator";
 import { getServerId, readJSONfromBuffer, writeJSONtoSocket } from "../Utils/utils";
-import {LeaderService} from "./leaderService";
-import {ElectionService} from "./electionService";
+import { LeaderService } from "./leaderService";
+import { ElectionService } from "./electionService";
 
 export class CommunicationService {
     constructor() { }
@@ -223,7 +223,7 @@ export class CommunicationService {
             const socket = new Socket()
             socket.connect(port, host)
             socket.setTimeout(10000);
-            writeJSONtoSocket(socket, { type: "requestleaderid"})
+            writeJSONtoSocket(socket, { type: "requestleaderid" })
             const promise = new Promise((resolve, reject) => {
                 socket.on('data', (buffer) => {
                     const data = readJSONfromBuffer(buffer);
@@ -238,7 +238,7 @@ export class CommunicationService {
                 });
 
                 socket.on('error', (err) => {
-                    console.log(' request leader id broadcast error:',err.message)
+                    console.log(' request leader id broadcast error:', err.message)
                     resolve('')
                     socket.end()
                 })
@@ -252,26 +252,30 @@ export class CommunicationService {
             let uniq = [...new Set(values)];
 
             //only one id
-            if(uniq.length === 1){
-                if(uniq[0] === ""){
+            if (uniq.length === 1) {
+                if (uniq[0] === "") {
                     //    start election
                     ElectionService.startElection()
                 }
-                if(uniq[0] != ""){
+                if (uniq[0] !== "") {
                     const leaderId = (uniq[0])
-                    if(parseInt(leaderId) > parseInt(getServerId())){
+                    if (parseInt(leaderId) > parseInt(getServerId())) {
                         //    start election and request data
                         ElectionService.startElection().then(() => {
                             this.requestDataFromLeader(leaderId)
                         })
-                    }else{
+                    } else {
                         //    set leader id
                         //    request data
                         ServiceLocator.leaderDAO.setLeaderId(leaderId)
                         this.requestDataFromLeader(leaderId)
                     }
                 }
-            }else{
+            } else if (uniq.length === 2) {
+                const leaderId = uniq[0] === '' ? uniq[1] : uniq[0]
+                // ServiceLocator.leaderDAO.setLeaderId(leaderId)
+            }
+            else {
                 //multiple values
                 console.log('multiple values from list- current leader id', ServiceLocator.leaderDAO.getLeaderId());
             }
@@ -280,7 +284,7 @@ export class CommunicationService {
     }
 
     static informLeaderId(data: any, sock: Socket) {
-        writeJSONtoSocket(sock, { type: "requestleaderid", leaderid: ServiceLocator.leaderDAO.getLeaderId()})
+        writeJSONtoSocket(sock, { type: "requestleaderid", leaderid: ServiceLocator.leaderDAO.getLeaderId() })
     }
 
     static requestDataFromLeader(leaderId: string) {
@@ -288,16 +292,16 @@ export class CommunicationService {
         const socket = new Socket()
         const { serverAddress: leaderAddress, coordinationPort: leaderPort } = new ServerList().getServer(leaderId);
         socket.connect(leaderPort, leaderAddress)
-        writeJSONtoSocket(socket, { type: "requestdata"})
+        writeJSONtoSocket(socket, { type: "requestdata" })
 
         socket.on('data', (buffer) => {
-            const {clients, chatrooms} = readJSONfromBuffer(buffer);
+            const { clients, chatrooms } = readJSONfromBuffer(buffer);
             console.log('clients', clients)
             console.log('chatrooms', chatrooms)
         });
 
         socket.on('error', (err) => {
-            console.log('error:',err.message)
+            console.log('error:', err.message)
             socket.end()
         })
 
