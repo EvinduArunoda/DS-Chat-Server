@@ -22,5 +22,9 @@ export const responseTypes = {
     BROADCAST_CREATEROOM: "broadcastcreateroom",
     BROADCAST_DELETEROOM: "broadcastdeleteroom",
     INFORM_ROOMDELETION: "informroomdeletion",
-    INFORM_CLIENTDELETION: "informclientdeletion"
+    INFORM_CLIENTDELETION: "informclientdeletion",
+    START_ELECTION: "startelection",
+    DECLARE_LEADER: "declareleader",
+    REQUEST_DATA: "requestdata",
+    REQUEST_LEADER_ID: "requestleaderid"
 }

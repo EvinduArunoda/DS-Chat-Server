@@ -224,7 +224,7 @@ export class CommunicationService {
             const socket = new Socket()
             socket.connect(port, host)
             socket.setTimeout(10000);
-            writeJSONtoSocket(socket, { type: "requestleaderid" })
+            writeJSONtoSocket(socket, { type: responseTypes.REQUEST_LEADER_ID })
             const promise = new Promise((resolve, reject) => {
                 socket.on('data', (buffer) => {
                     const data = readJSONfromBuffer(buffer);
@@ -251,14 +251,12 @@ export class CommunicationService {
             //remove duplicates
             let uniq = [...new Set(values)];
 
-            /*
             //only one id
             if (uniq.length === 1) {
                 if (uniq[0] === "") {
                     //    start election
                     ElectionService.startElection()
-                }
-                if (uniq[0] !== "") {
+                } else if (uniq[0] !== "") {
                     const leaderId = (uniq[0])
                     if (parseInt(leaderId) > parseInt(getServerId())) {
                         //    start election and request data
@@ -286,7 +284,7 @@ export class CommunicationService {
                 //multiple values
                 console.log('multiple values from list- current leader id', ServiceLocator.serversDAO.getLeaderId());
             }
-            */
+            
 
              //// @Evindu /////
              const maxId = Math.max(...uniq);
@@ -304,7 +302,7 @@ export class CommunicationService {
     }
 
     static informLeaderId(data: any, sock: Socket) {
-        writeJSONtoSocket(sock, { type: "requestleaderid", leaderid: ServiceLocator.serversDAO.getLeaderId() })
+        writeJSONtoSocket(sock, { type: responseTypes.REQUEST_LEADER_ID, leaderid: ServiceLocator.serversDAO.getLeaderId() })
     }
 
     static requestDataFromLeader(leaderId: string) {
@@ -312,7 +310,7 @@ export class CommunicationService {
         const socket = new Socket()
         const { serverAddress: leaderAddress, coordinationPort: leaderPort } = new ServerList().getServer(leaderId);
         socket.connect(leaderPort, leaderAddress)
-        writeJSONtoSocket(socket, { type: "requestdata" })
+        writeJSONtoSocket(socket, { type: responseTypes.REQUEST_DATA })
 
         socket.on('data', (buffer) => {
             const data = readJSONfromBuffer(buffer);

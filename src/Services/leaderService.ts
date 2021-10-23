@@ -77,7 +77,7 @@ export class LeaderService {
 
     static provideLeaderState(sock: Socket): boolean {
         const data = { clients: ServiceLocator.foreignClientsDAO.getClients(), chatrooms: ServiceLocator.foreignChatroomsDAO.getChatrooms() }
-        writeJSONtoSocket(sock, { type: "requestdata", data });
+        writeJSONtoSocket(sock, { type: responseTypes.REQUEST_DATA, data });
         return true
     }
 }

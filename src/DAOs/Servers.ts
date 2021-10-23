@@ -1,5 +1,6 @@
 export class ServersDAO {
     private leaderId: string = '';
+    private availableServers: Set<string> = new Set<string>();
 
     constructor() { }
 

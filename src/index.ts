@@ -15,6 +15,7 @@ const { serverAddress, coordinationPort, clientsPort } = new ServerList().getSer
 
 if (!ServiceLocator.serversDAO.getLeaderId()) {
     // ElectionService.startElection()
+    // TODO: should wait here
     CommunicationService.requestLeaderId()
 }
 
@@ -86,9 +87,9 @@ coordinationServer.on('connection', (sock: Socket) => {
 
         switch (data.type) {
             // election
-            case "startelection":
+            case responseTypes.START_ELECTION:
                 return ServiceLocator.electionHandler.approveElection(data, sock)
-            case "declareleader":
+            case responseTypes.DECLARE_LEADER:
                 return ServiceLocator.electionHandler.setElectedLeader(data)
             // recieved by leader
             case responseTypes.IS_CLIENT:
@@ -101,7 +102,7 @@ coordinationServer.on('connection', (sock: Socket) => {
                 return ServiceLocator.mainHandler.getLeaderHandler().informRoomDeletion(data, sock)
             case responseTypes.INFORM_CLIENTDELETION:
                 return ServiceLocator.mainHandler.getLeaderHandler().informClientDeletion(data, sock)
-            case "requestdata":
+            case responseTypes.REQUEST_DATA:
                 return ServiceLocator.mainHandler.getLeaderHandler().provideLeaderState(sock)
             // recieved by other nodes
             case responseTypes.BROADCAST_NEWIDENTITY:
@@ -112,7 +113,7 @@ coordinationServer.on('connection', (sock: Socket) => {
                 return ServiceLocator.mainHandler.getCommunicationHandler().broadcastDeleteroom(data)
             case responseTypes.BROADCAST_QUIT:
                 return ServiceLocator.mainHandler.getCommunicationHandler().broadcastQuit(data)
-            case "requestleaderid":
+            case responseTypes.REQUEST_LEADER_ID:
                 return ServiceLocator.mainHandler.getCommunicationHandler().informLeaderId(data, sock)
             default:
                 break;
