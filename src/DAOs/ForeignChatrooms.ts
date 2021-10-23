@@ -1,6 +1,6 @@
 import _ from "lodash";
 import { ServerList } from "../Constants/servers";
-import { ForeignChatroomInterface } from "../Interfaces/ForeignChatroomInterface";
+import {ChatroomsObject, ForeignChatroomInterface} from "../Interfaces/ForeignChatroomInterface";
 
 export class ForeignChatroomsDAO {
     private chatrooms: ForeignChatroomInterface = {};
@@ -71,7 +71,20 @@ export class ForeignChatroomsDAO {
      * @returns ForeignChatroomInterface
      */
     getChatrooms(): ForeignChatroomInterface {
-        return this.chatrooms
+        const chatrooms:any = {}
+        for (const key in this.chatrooms) {
+            chatrooms[`${key}`] = [...this.chatrooms[key]]
+        }
+        return chatrooms
     }
 
+    /**
+     * save an object of chatrooms
+     * @param chatroomsObject object of chatrooms
+     */
+    saveChatrooms(chatroomsObject: ChatroomsObject): void {
+        for (const key in chatroomsObject) {
+            this.chatrooms[`${key}`] = new Set(chatroomsObject[key])
+        }
+    }
 }

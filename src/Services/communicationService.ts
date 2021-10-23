@@ -247,7 +247,6 @@ export class CommunicationService {
         });
 
         Promise.all(promisesList).then((values) => {
-            console.log('VALUES LIST FROM PROMISES ALL', values);
             //remove duplicates
             let uniq = [...new Set(values)];
 
@@ -267,12 +266,18 @@ export class CommunicationService {
                     } else {
                         //    set leader id
                         //    request data
-                        ServiceLocator.leaderDAO.setLeaderId(leaderId)
-                        this.requestDataFromLeader(leaderId)
+                        if(parseInt(leaderId) != parseInt(getServerId())){
+                            ServiceLocator.leaderDAO.setLeaderId(leaderId)
+                            this.requestDataFromLeader(leaderId)
+                        }
                     }
                 }
             } else if (uniq.length === 2) {
                 const leaderId = uniq[0] === '' ? uniq[1] : uniq[0]
+                if(parseInt(leaderId) != parseInt(getServerId())){
+                    ServiceLocator.leaderDAO.setLeaderId(leaderId)
+                    this.requestDataFromLeader(leaderId)
+                }
                 // ServiceLocator.leaderDAO.setLeaderId(leaderId)
             }
             else {
@@ -288,16 +293,16 @@ export class CommunicationService {
     }
 
     static requestDataFromLeader(leaderId: string) {
-        console.log('requestDataFromLeader id', ServiceLocator.leaderDAO.getLeaderId(), getServerId())
+        console.log('requestDataFromLeader id', leaderId)
         const socket = new Socket()
         const { serverAddress: leaderAddress, coordinationPort: leaderPort } = new ServerList().getServer(leaderId);
         socket.connect(leaderPort, leaderAddress)
         writeJSONtoSocket(socket, { type: "requestdata" })
 
         socket.on('data', (buffer) => {
-            const { clients, chatrooms } = readJSONfromBuffer(buffer);
-            console.log('clients', clients)
-            console.log('chatrooms', chatrooms)
+            const data = readJSONfromBuffer(buffer);
+            ServiceLocator.foreignClientsDAO.saveClients(data.data.clients)
+            ServiceLocator.foreignChatroomsDAO.saveChatrooms(data.data.chatrooms)
         });
 
         socket.on('error', (err) => {

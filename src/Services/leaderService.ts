@@ -3,7 +3,6 @@ import { getServerId, isValidIdentity, writeJSONtoSocket } from "../Utils/utils"
 import { ServiceLocator } from "../Utils/serviceLocator";
 import { ServerList } from "../Constants/servers";
 import { responseTypes } from "../Constants/responseTypes";
-import { ForeignClientsDAO } from "../DAOs/ForeignClients";
 
 export class LeaderService {
     constructor() { }
