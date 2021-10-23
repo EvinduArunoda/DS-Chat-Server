@@ -1,8 +1,4 @@
-interface leaderIDsByServer {
-    [key:number]: string
-}
-
-export class LeaderDAO {
+export class ServersDAO {
     private leaderId: string = '';
 
     constructor() { }

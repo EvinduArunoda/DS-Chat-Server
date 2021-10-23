@@ -14,7 +14,7 @@ export class CommunicationService {
         // return true if id is NOT unique
         // return false if id is unique
         // {type: 'isclient', identity: identity, serverid: serverid }
-        const leaderId = ServiceLocator.leaderDAO.getLeaderId()
+        const leaderId = ServiceLocator.serversDAO.getLeaderId()
         const serverid = getServerId()
         // check if the server is the leader before connecting
         if (leaderId === serverid) {
@@ -34,6 +34,7 @@ export class CommunicationService {
             const { serverAddress: leaderAddress, coordinationPort: leaderPort } = new ServerList().getServer(leaderId);
             socket.connect(leaderPort, leaderAddress)
             writeJSONtoSocket(socket, { type: responseTypes.IS_CLIENT, identity, serverid })
+            // TODO: what if there is no leader
             return new Promise((resolve, reject) => {
                 socket.on('data', (buffer) => {
                     const data = readJSONfromBuffer(buffer);
@@ -67,7 +68,7 @@ export class CommunicationService {
         // return true if id is NOT unique
         // return false if id is unique
         // {type: 'ischatroom', roomid: roomid, serverid: serverid}
-        const leaderId = ServiceLocator.leaderDAO.getLeaderId()
+        const leaderId = ServiceLocator.serversDAO.getLeaderId()
         const serverid = getServerId()
         // check if the server is the leader before connecting
         if (leaderId === serverid) {
@@ -116,7 +117,7 @@ export class CommunicationService {
         // return server id
         // return undefined if not found
         // {type:'chatroomserver', roomid:roomid}
-        const leaderId = ServiceLocator.leaderDAO.getLeaderId()
+        const leaderId = ServiceLocator.serversDAO.getLeaderId()
         const serverid = getServerId()
         // check if the server is the leader before connecting
         if (leaderId === serverid) {
@@ -140,7 +141,7 @@ export class CommunicationService {
 
     static informChatroomDeletion(roomid: string): Promise<any> {
         // inform other servers about chatroom deletion
-        const leaderId = ServiceLocator.leaderDAO.getLeaderId()
+        const leaderId = ServiceLocator.serversDAO.getLeaderId()
         const serverid = getServerId()
         // check if the server is the leader before connecting
         if (leaderId === serverid) {
@@ -160,7 +161,7 @@ export class CommunicationService {
                     const data = readJSONfromBuffer(buffer);
                     resolve(data.acknowledged)
                 });
-
+                // TODO: should work without deletion
                 socket.on('error', (error) => {
                     ElectionService.startElection().then(() => {
                         resolve(CommunicationService.informChatroomDeletion(roomid))
@@ -178,7 +179,7 @@ export class CommunicationService {
     static informClientDeletion(identity: string): Promise<any> {
         // check if the server is the leader before connecting
         // inform other servers about client deletion
-        const leaderId = ServiceLocator.leaderDAO.getLeaderId()
+        const leaderId = ServiceLocator.serversDAO.getLeaderId()
         const serverid = getServerId()
         // check if the server is the leader before connecting
         if (leaderId === serverid) {
@@ -198,7 +199,7 @@ export class CommunicationService {
                     const data = readJSONfromBuffer(buffer);
                     resolve(data.acknowledged)
                 });
-
+                // TODO: should work without deletion
                 socket.on('error', (error) => {
                     ElectionService.startElection().then(() => {
                         resolve(CommunicationService.informClientDeletion(identity))
@@ -231,15 +232,15 @@ export class CommunicationService {
                     resolve(leaderId)
                     socket.end()
                 });
-
+                // server does not response
                 socket.on('timeout', () => {
-                    resolve('')
+                    resolve('-1')
                     socket.end()
                 });
 
                 socket.on('error', (err) => {
                     console.log(' request leader id broadcast error:', err.message)
-                    resolve('')
+                    resolve('-1')
                     socket.end()
                 })
             });
@@ -267,29 +268,29 @@ export class CommunicationService {
                         //    set leader id
                         //    request data
                         if(parseInt(leaderId) != parseInt(getServerId())){
-                            ServiceLocator.leaderDAO.setLeaderId(leaderId)
+                            ServiceLocator.serversDAO.setLeaderId(leaderId)
                             this.requestDataFromLeader(leaderId)
                         }
                     }
                 }
-            } else if (uniq.length === 2) {
+            } else if (uniq.length === 2 && (uniq[0] === '' || uniq[1] === '')) {
                 const leaderId = uniq[0] === '' ? uniq[1] : uniq[0]
                 if(parseInt(leaderId) != parseInt(getServerId())){
-                    ServiceLocator.leaderDAO.setLeaderId(leaderId)
+                    ServiceLocator.serversDAO.setLeaderId(leaderId)
                     this.requestDataFromLeader(leaderId)
                 }
-                // ServiceLocator.leaderDAO.setLeaderId(leaderId)
+                // ServiceLocator.serversDAO.setLeaderId(leaderId)
             }
             else {
                 //multiple values
-                console.log('multiple values from list- current leader id', ServiceLocator.leaderDAO.getLeaderId());
+                console.log('multiple values from list- current leader id', ServiceLocator.serversDAO.getLeaderId());
             }
 
         });
     }
 
     static informLeaderId(data: any, sock: Socket) {
-        writeJSONtoSocket(sock, { type: "requestleaderid", leaderid: ServiceLocator.leaderDAO.getLeaderId() })
+        writeJSONtoSocket(sock, { type: "requestleaderid", leaderid: ServiceLocator.serversDAO.getLeaderId() })
     }
 
     static requestDataFromLeader(leaderId: string) {

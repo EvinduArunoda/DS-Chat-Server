@@ -5,7 +5,7 @@ import { ChatroomHandler } from "../Handlers/chatroomHandler";
 import { ClientHandler } from "../Handlers/clientHandler";
 import { MainHandler } from "../Handlers/mainHandler";
 import { ForeignClientsDAO } from "../DAOs/ForeignClients";
-import { LeaderDAO } from "../DAOs/Leader";
+import { ServersDAO } from "../DAOs/Servers";
 import { ElectionHandler } from "../Handlers/electionHandler";
 
 export class ServiceLocator {
@@ -45,10 +45,10 @@ export class ServiceLocator {
         return this._instances.get(key);
     }
 
-    static get leaderDAO(): LeaderDAO {
-        const key = 'leaderDAO';
+    static get serversDAO(): ServersDAO {
+        const key = 'serversDAO';
         if (!this._instances.get(key)) {
-            this._instances.set(key, new LeaderDAO());
+            this._instances.set(key, new ServersDAO());
         }
         return this._instances.get(key);
     }

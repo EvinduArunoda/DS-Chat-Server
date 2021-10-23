@@ -3,8 +3,6 @@ import { getServerId, readJSONfromBuffer } from "./Utils/utils";
 import { responseTypes } from "./Constants/responseTypes";
 import { ServiceLocator } from "./Utils/serviceLocator";
 import { ServerList } from "./Constants/servers";
-import { LeaderService } from "./Services/leaderService"
-import { ElectionService } from "./Services/electionService";
 import { CommunicationService } from "./Services/communicationService";
 
 
@@ -15,7 +13,7 @@ if (!process.env.SERVER_ID) {
 
 const { serverAddress, coordinationPort, clientsPort } = new ServerList().getServer(getServerId().toString());
 
-if (!ServiceLocator.leaderDAO.getLeaderId()) {
+if (!ServiceLocator.serversDAO.getLeaderId()) {
     // ElectionService.startElection()
     CommunicationService.requestLeaderId()
 }
