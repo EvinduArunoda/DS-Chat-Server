@@ -1,5 +1,5 @@
 import _ from "lodash";
-import { ForeignClientInterface } from "../Interfaces/ForeignClientInterface";
+import {ClientsObject, ForeignClientInterface} from "../Interfaces/ForeignClientInterface";
 
 export class ForeignClientsDAO {
     private clients: ForeignClientInterface = {}
@@ -26,7 +26,7 @@ export class ForeignClientsDAO {
      * @param serverid server id
      */
     addNewClient(serverid: string, identity: string): void {
-        if(this.clients[serverid] === undefined){
+        if (this.clients[serverid] === undefined) {
             this.clients[serverid] = new Set()
         }
         this.clients[serverid].add(identity);
@@ -41,5 +41,28 @@ export class ForeignClientsDAO {
     removeClient(serverid: string, identity: string): void {
         this.clients[serverid].delete(identity)
         console.log("ForeignClientsDAO.deleteClient", serverid, identity);
+    }
+
+    /**
+     * get clients
+     * @returns ForeignClientInterface
+     */
+    getClients(): ForeignClientInterface {
+        const clients:any = {}
+        for (const key in this.clients) {
+            clients[`${key}`] = [...this.clients[key]]
+        }
+        return clients
+    }
+
+    /**
+     * save an object of clients
+     * @param clientsObject object of clients
+     */
+    saveClients(clientsObject: ClientsObject): void {
+        for (const key in clientsObject) {
+            this.clients[`${key}`] = new Set(clientsObject[key])
+        }
+
     }
 }

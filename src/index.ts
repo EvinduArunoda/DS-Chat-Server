@@ -5,10 +5,20 @@ import { ServiceLocator } from "./Utils/serviceLocator";
 import { ServerList } from "./Constants/servers";
 import { LeaderService } from "./Services/leaderService"
 import { ElectionService } from "./Services/electionService";
+import { CommunicationService } from "./Services/communicationService";
 
+
+// server id
+if (!process.env.SERVER_ID) {
+    process.env['SERVER_ID'] = '1';
+}
 
 const { serverAddress, coordinationPort, clientsPort } = new ServerList().getServer(getServerId().toString());
-ServiceLocator.leaderDAO.setLeaderId('1')
+
+if (!ServiceLocator.leaderDAO.getLeaderId()) {
+    // ElectionService.startElection()
+    CommunicationService.requestLeaderId()
+}
 
 // server for cleints
 const server = net.createServer();
@@ -77,7 +87,7 @@ coordinationServer.on('connection', (sock: Socket) => {
         console.log(data)
 
         switch (data.type) {
-            //election
+            // election
             case "startelection":
                 return ServiceLocator.electionHandler.approveElection(data, sock)
             case "declareleader":
@@ -93,7 +103,9 @@ coordinationServer.on('connection', (sock: Socket) => {
                 return ServiceLocator.mainHandler.getLeaderHandler().informRoomDeletion(data, sock)
             case responseTypes.INFORM_CLIENTDELETION:
                 return ServiceLocator.mainHandler.getLeaderHandler().informClientDeletion(data, sock)
-            // recieved by oter nodes
+            case "requestdata":
+                return ServiceLocator.mainHandler.getLeaderHandler().provideLeaderState(sock)
+            // recieved by other nodes
             case responseTypes.BROADCAST_NEWIDENTITY:
                 return ServiceLocator.mainHandler.getCommunicationHandler().broadcastNewIdentity(data)
             case responseTypes.BROADCAST_CREATEROOM:
@@ -102,6 +114,8 @@ coordinationServer.on('connection', (sock: Socket) => {
                 return ServiceLocator.mainHandler.getCommunicationHandler().broadcastDeleteroom(data)
             case responseTypes.BROADCAST_QUIT:
                 return ServiceLocator.mainHandler.getCommunicationHandler().broadcastQuit(data)
+            case "requestleaderid":
+                return ServiceLocator.mainHandler.getCommunicationHandler().informLeaderId(data, sock)
             default:
                 break;
         }

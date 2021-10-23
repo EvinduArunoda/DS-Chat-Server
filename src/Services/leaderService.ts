@@ -51,7 +51,7 @@ export class LeaderService {
             socket.connect(port, host)
             writeJSONtoSocket(socket, data);
             socket.on('error', (err) => {
-                console.log('broadcast error:',err.message)
+                console.log('broadcast error:', err.message)
                 socket.end()
             })
         });
@@ -72,6 +72,12 @@ export class LeaderService {
         writeJSONtoSocket(sock, { acknowledged: true, type: responseTypes.INFORM_CLIENTDELETION, identity });
         // inform other servers
         LeaderService.broadcastServers({ type: responseTypes.BROADCAST_QUIT, identity, serverid })
+        return true
+    }
+
+    static provideLeaderState(sock: Socket): boolean {
+        const data = { clients: ServiceLocator.foreignClientsDAO.getClients(), chatrooms: ServiceLocator.foreignChatroomsDAO.getChatrooms() }
+        writeJSONtoSocket(sock, { type: "requestdata", data });
         return true
     }
 }

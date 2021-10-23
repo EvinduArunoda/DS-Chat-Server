@@ -22,5 +22,5 @@ export function getServerId(): string {
     if (!process.env.SERVER_ID) {
         return '1';
     }
-    return process.env.SERVER_ID;
+    return process.env.SERVER_ID.trim();
 }
