@@ -251,6 +251,7 @@ export class CommunicationService {
             //remove duplicates
             let uniq = [...new Set(values)];
 
+            /*
             //only one id
             if (uniq.length === 1) {
                 if (uniq[0] === "") {
@@ -285,6 +286,19 @@ export class CommunicationService {
                 //multiple values
                 console.log('multiple values from list- current leader id', ServiceLocator.serversDAO.getLeaderId());
             }
+            */
+
+             //// @Evindu /////
+             const maxId = Math.max(...uniq);
+             if (parseInt(getServerId(),10) > maxId) {
+                 ElectionService.startElection().then(() => {
+                     this.requestDataFromLeader(maxId.toString())
+                 })
+             } else {
+                 ServiceLocator.serversDAO.setLeaderId(maxId.toString())
+                 this.requestDataFromLeader(maxId.toString())
+             }
+             ///////////////
 
         });
     }
