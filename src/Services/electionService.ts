@@ -99,7 +99,7 @@ export class ElectionService {
                             //re election
                             this.startElection(true)
                         }
-                    }, higherUpServers.length == 1 ? 200 : T1 + 2000 * parseInt(getServerId()))
+                    }, higherUpServers.length == 1 ? 200 : 1000 * parseInt(getServerId()))
                 }else{
                     //    set this server as leader n broadcast
                     const leaderId = getServerId();
