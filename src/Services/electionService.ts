@@ -28,11 +28,18 @@ export class ElectionService {
 
     constructor() { }
 
-    static async startElection(): Promise<void> {
+    static async startElection(reelection?:boolean): Promise<void> {
         // Ask higher id servers, wait T0
         // if get bullied, wait T1. If before the timeout, leader is not elected restart election
         // else, elect itsef as the leader and broadcast every server
         // set leaderId
+        console.log('STARTING ELECTION / RE ELECTION -', reelection);
+        //********* new method
+        //ask higher ids
+        //wait for all responses
+        //after responses wait some more,  after the timeout, if leader is not elected restart election
+        //if no responses elect it self as leader
+
         const T0 = 30000
         const T1 = 50000
         const T3 = 10000
@@ -40,6 +47,7 @@ export class ElectionService {
         ServiceLocator.leaderDAO.setLeaderId('')
 
         const higherUpServers = new ServerList().getHigherUpServers()
+        const promisesList: Array<Promise<any>> = [];
 
         if (higherUpServers.length < 1) {
             const leaderId = getServerId()
@@ -53,53 +61,52 @@ export class ElectionService {
             socket.connect(port, host)
             socket.setTimeout(T0);
             writeJSONtoSocket(socket, { type: "startelection", serverid: getServerId() })
-            return new Promise((resolve, reject) => {
+            const promise = new Promise((resolve, reject) => {
                 socket.on('data', (buffer) => {
                     const data = readJSONfromBuffer(buffer);
-                    console.log('election response', data)
                     // if bullied, wait T0; then restart election
                     if (data.approved === false) {
-                        //this time out should be larger than socket timeout; otherwise a election is called before completing a election
-                        setTimeout(() => {
-                            if (ServiceLocator.leaderDAO.getLeaderId()) {
-                            } else {
-                                ElectionService.startElection()
-                            }
-                        }, 60000)
+                        resolve(false);
                     }
                     socket.end();
                 })
 
                 socket.on('timeout', () => {
-                    setTimeout(() => {
-                        if (ServiceLocator.leaderDAO.getLeaderId() === '') {
-                            // choose itself as the leader
-                            const leaderId = getServerId()
-                            console.log(`Elect myself (${leaderId}) as leader due to timeout`)
-                            ServiceLocator.leaderDAO.setLeaderId(leaderId)
-                            LeaderService.broadcastServers({ type: "declareleader", serverid: leaderId })
-                            resolve(leaderId)
-                        } else {
-                            resolve(ServiceLocator.leaderDAO.getLeaderId())
-                        }
-                        socket.end();
-                    }, higherUpServers.length == 1 ? 200 : 10000 * parseInt(getServerId()))
-
+                    resolve("");
+                    socket.end();
                 });
 
                 socket.on('error', () => {
+                    resolve("");
+                    socket.end();
+                });
+            });
+
+            promisesList.push(promise);
+        });
+
+        if(promisesList.length > 0){
+            Promise.all(promisesList).then(values => {
+                console.log('ELECTION RESULTS (with socket timeouts)', values)
+                let uniq = [...new Set(values)];
+                if(uniq.includes(false)){
+                    //  set timeout; wait for leader id; if not re elect
+                    //  timeout can be set a lower value than T1 + ...
                     setTimeout(() => {
                         if (ServiceLocator.leaderDAO.getLeaderId()) {
                             console.log('A leader has been selected', ServiceLocator.leaderDAO.getLeaderId())
                         } else {
-                            const leaderId = getServerId()
-                            ServiceLocator.leaderDAO.setLeaderId(leaderId)
-                            LeaderService.broadcastServers({ type: "declareleader", serverid: leaderId })
+                            //re election
+                            this.startElection(true)
                         }
-                        socket.end();
                     }, higherUpServers.length == 1 ? 200 : T1 + 2000 * parseInt(getServerId()))
-                });
+                }else{
+                    //    set this server as leader n broadcast
+                    const leaderId = getServerId();
+                    ServiceLocator.leaderDAO.setLeaderId(leaderId);
+                    LeaderService.broadcastServers({ type: "declareleader", serverid: leaderId });
+                }
             })
-        })
+        }
     }
 }
