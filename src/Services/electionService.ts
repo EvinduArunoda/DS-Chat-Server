@@ -32,7 +32,7 @@ export class ElectionService {
         // Ask higher id servers, wait T0
         // if get bullied, wait T1. If before the timeout, leader is not elected restart election
         // else, elect itsef as the leader and broadcast every server
-        // set leaderId
+        // set leaderid
         console.log('STARTING ELECTION / RE ELECTION -', reelection);
         //********* new method
         //ask higher ids
@@ -44,15 +44,15 @@ export class ElectionService {
         const T1 = 50000
         const T3 = 10000
         // set leaderid as emptystring
-        ServiceLocator.serversDAO.setLeaderId('')
+        // ServiceLocator.serversDAO.setLeaderId('')
 
         const higherUpServers = new ServerList().getHigherUpServers()
         const promisesList: Array<Promise<any>> = [];
 
         if (higherUpServers.length < 1) {
-            const leaderId = getServerId()
-            ServiceLocator.serversDAO.setLeaderId(leaderId)
-            LeaderService.broadcastServers({ type: responseTypes.DECLARE_LEADER, serverid: leaderId })
+            const leaderid = getServerId()
+            ServiceLocator.serversDAO.setLeaderId(leaderid)
+            LeaderService.broadcastServers({ type: responseTypes.DECLARE_LEADER, serverid: leaderid })
         }
 
         higherUpServers.forEach(server => {
@@ -102,9 +102,9 @@ export class ElectionService {
                     }, higherUpServers.length == 1 ? 200 : 1000 * parseInt(getServerId()))
                 }else{
                     //    set this server as leader n broadcast
-                    const leaderId = getServerId();
-                    ServiceLocator.serversDAO.setLeaderId(leaderId);
-                    LeaderService.broadcastServers({ type: responseTypes.DECLARE_LEADER, serverid: leaderId });
+                    const leaderid = getServerId();
+                    ServiceLocator.serversDAO.setLeaderId(leaderid);
+                    LeaderService.broadcastServers({ type: responseTypes.DECLARE_LEADER, serverid: leaderid });
                 }
             })
         }

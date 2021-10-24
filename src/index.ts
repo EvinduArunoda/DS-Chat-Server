@@ -13,11 +13,8 @@ if (!process.env.SERVER_ID) {
 
 const { serverAddress, coordinationPort, clientsPort } = new ServerList().getServer(getServerId().toString());
 
-if (!ServiceLocator.serversDAO.getLeaderId()) {
-    // ElectionService.startElection()
-    // TODO: should wait here
-    CommunicationService.requestLeaderId()
-}
+// TODO: should wait here
+CommunicationService.requestLeaderId()
 
 // server for cleints
 const server = net.createServer();

@@ -22,12 +22,12 @@ export default class Database{
         this._chatRooms.set(roomid, serverid)
     }
 
-    get leaderId(){
-        return this.data.get('leaderId')
+    get leaderid(){
+        return this.data.get('leaderid')
     }
 
-    set leaderId(leaderId:string){
-        this.data.set('leaderId', leaderId)
+    set leaderid(leaderid:string){
+        this.data.set('leaderid', leaderid)
     }
 
 }
