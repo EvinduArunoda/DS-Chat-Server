@@ -14,7 +14,4 @@ export class CommunicationHandler  {
     broadcastDeleteroom(data: any) {
         return CommunicationService.deleteChatRoom(data);
     }
-    informLeaderId(data: any, sock: Socket) {
-        return CommunicationService.informLeaderId(data, sock);
-    }
 }

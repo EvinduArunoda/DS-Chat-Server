@@ -25,6 +25,5 @@ export const responseTypes = {
     INFORM_CLIENTDELETION: "informclientdeletion",
     START_ELECTION: "startelection",
     DECLARE_LEADER: "declareleader",
-    REQUEST_DATA: "requestdata",
-    REQUEST_LEADER_ID: "requestleaderid"
+    REQUEST_DATA: "requestdata"
 }

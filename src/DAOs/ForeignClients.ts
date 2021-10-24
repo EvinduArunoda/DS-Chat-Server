@@ -45,9 +45,9 @@ export class ForeignClientsDAO {
 
     /**
      * get clients
-     * @returns ForeignClientInterface
+     * @returns ClientsObject
      */
-    getClients(): ForeignClientInterface {
+    getClients(): ClientsObject {
         const clients:any = {}
         for (const key in this.clients) {
             clients[`${key}`] = [...this.clients[key]]
@@ -63,6 +63,5 @@ export class ForeignClientsDAO {
         for (const key in clientsObject) {
             this.clients[`${key}`] = new Set(clientsObject[key])
         }
-
     }
 }

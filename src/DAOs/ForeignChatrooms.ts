@@ -70,7 +70,7 @@ export class ForeignChatroomsDAO {
      * get chatrooms
      * @returns ForeignChatroomInterface
      */
-    getChatrooms(): ForeignChatroomInterface {
+    getChatrooms(): ChatroomsObject {
         const chatrooms:any = {}
         for (const key in this.chatrooms) {
             chatrooms[`${key}`] = [...this.chatrooms[key]]

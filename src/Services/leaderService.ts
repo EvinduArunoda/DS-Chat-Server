@@ -76,8 +76,13 @@ export class LeaderService {
     }
 
     static provideLeaderState(sock: Socket): boolean {
-        const data = { clients: ServiceLocator.foreignClientsDAO.getClients(), chatrooms: ServiceLocator.foreignChatroomsDAO.getChatrooms() }
-        writeJSONtoSocket(sock, { type: responseTypes.REQUEST_DATA, data });
+        writeJSONtoSocket(sock, {
+            type: responseTypes.REQUEST_DATA,
+            leaderid: ServiceLocator.serversDAO.getLeaderId(),
+            clock: ServiceLocator.serversDAO.getClock(),
+            clients: ServiceLocator.foreignClientsDAO.getClients(),
+            chatrooms: ServiceLocator.foreignChatroomsDAO.getChatrooms()
+        })
         return true
     }
 }

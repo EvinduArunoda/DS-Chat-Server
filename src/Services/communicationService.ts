@@ -5,6 +5,8 @@ import { ServiceLocator } from "../Utils/serviceLocator";
 import { getServerId, readJSONfromBuffer, writeJSONtoSocket } from "../Utils/utils";
 import { LeaderService } from "./leaderService";
 import { ElectionService } from "./electionService";
+import { ClientsObject } from "../Interfaces/ForeignClientInterface";
+import { ChatroomsObject } from "../Interfaces/ForeignChatroomInterface";
 
 export class CommunicationService {
     constructor() { }
@@ -213,8 +215,15 @@ export class CommunicationService {
         }
     }
 
-    static requestLeaderId() {
-        console.log('REQUEST LEADER ID')
+    static updateDatabase(data: { clock: number, leaderid: string, clients: ClientsObject, chatrooms: ChatroomsObject}) {
+        ServiceLocator.serversDAO.updateClock(data.clock);
+        ServiceLocator.serversDAO.setLeaderId(data.leaderid);
+        ServiceLocator.foreignClientsDAO.saveClients(data.clients);
+        ServiceLocator.foreignChatroomsDAO.saveChatrooms(data.chatrooms);
+    }
+
+    static requestInitialData() {
+        console.log('REQUEST DATA')
         const serverList = new ServerList()
         //add all requests to promisesList
         const promisesList: Array<Promise<any>> = [];
@@ -224,7 +233,7 @@ export class CommunicationService {
             const socket = new Socket()
             socket.connect(port, host)
             socket.setTimeout(10000);
-            writeJSONtoSocket(socket, { type: responseTypes.REQUEST_LEADER_ID })
+            writeJSONtoSocket(socket, { type: responseTypes.REQUEST_DATA })
             const promise = new Promise((resolve, reject) => {
                 socket.on('data', (buffer) => {
                     const data = readJSONfromBuffer(buffer);
@@ -249,81 +258,37 @@ export class CommunicationService {
 
         Promise.all(promisesList).then((values) => {
             const responses = values.filter(value => value !== null)
-            //remove duplicates
-            let uniq = [...new Set(responses.map(response => response.leaderid))];
 
-            //only one id
-            if (uniq.length === 1) {
-                if (uniq[0] === "") {
-                    //    start election
-                    ElectionService.startElection()
-                } else if (uniq[0] !== "") {
-                    const leaderid = (uniq[0])
-                    if (parseInt(leaderid) > parseInt(getServerId())) {
-                        //    start election and request data
-                        ElectionService.startElection().then(() => {
-                            this.requestDataFromLeader(leaderid)
-                        })
-                    } else {
-                        //    set leader id
-                        //    request data
-                        if (parseInt(leaderid) != parseInt(getServerId())) {
-                            ServiceLocator.serversDAO.setLeaderId(leaderid)
-                            this.requestDataFromLeader(leaderid)
-                        }
-                    }
-                }
-            } else if (uniq.length === 2 && (uniq[0] === '' || uniq[1] === '')) {
-                const leaderid = uniq[0] === '' ? uniq[1] : uniq[0]
-                if (parseInt(leaderid) != parseInt(getServerId())) {
-                    ServiceLocator.serversDAO.setLeaderId(leaderid)
-                    this.requestDataFromLeader(leaderid)
-                }
-                // ServiceLocator.serversDAO.setLeaderId(leaderid)
+            let latestData = {
+                leaderid: ServiceLocator.serversDAO.getLeaderId(),
+                clock: ServiceLocator.serversDAO.getClock(),
+                clients: ServiceLocator.foreignClientsDAO.getClients(),
+                chatrooms: ServiceLocator.foreignChatroomsDAO.getChatrooms()
             }
-            else {
-                //multiple values
-                console.log('multiple values from list- current leader id', ServiceLocator.serversDAO.getLeaderId());
-            }
-
-            // //// @Evindu /////
-            // const maxId = Math.max(...uniq); // ??
-            // if (parseInt(getServerId(), 10) > maxId) {
-            //     ElectionService.startElection().then(() => {
-            //         this.requestDataFromLeader(maxId.toString())
-            //     })
-            // } else {
-            //     ServiceLocator.serversDAO.setLeaderId(maxId.toString())
-            //     this.requestDataFromLeader(maxId.toString())
-            // }
-            /////////////////
-
-            let latestClock = {clock : -1, leaderid: -1, clients: {}, chatrooms: {}};
+            let updated = false
 
             for (const res of responses) {
-                if ((res.clock === latestClock.clock && res.leaderid > latestClock.leaderid) || res.clock > latestClock.clock) {
-                    latestClock = res;
+                // get the highest leader id with letest clock
+                if ((res.clock === latestData.clock && res.leaderid > latestData.leaderid) || res.clock > latestData.clock) {
+                    latestData = res;
+                    updated = true
                 }
             }
 
-            if (latestClock.clock > 0) {
-                // TODO : save clock
-                ServiceLocator.serversDAO.setLeaderId(latestClock.leaderid.toString());
-                ServiceLocator.foreignClientsDAO.saveClients(latestClock.clients);
-                ServiceLocator.foreignChatroomsDAO.saveChatrooms(latestClock.chatrooms);
+            // update database
+            if (updated) {
+                this.updateDatabase(latestData)
+            }
+
+            // call election if current leader has lower id
+            if (parseInt(latestData.leaderid) < parseInt(getServerId())) {
+                ElectionService.startElection().then(() => {
+                    // leader might have updated before election starts
+                    this.requestDataFromLeader(latestData.leaderid)
+                })
             }
 
         });
-    }
-
-    static informLeaderId(data: any, sock: Socket) {
-        writeJSONtoSocket(sock, {
-            type: responseTypes.REQUEST_LEADER_ID,
-            leaderid: ServiceLocator.serversDAO.getLeaderId(),
-            clock: ServiceLocator.serversDAO.getClock(),
-            clients: ServiceLocator.foreignClientsDAO.getClients(),
-            chatrooms: ServiceLocator.foreignChatroomsDAO.getChatrooms()
-        })
     }
 
     static requestDataFromLeader(leaderid: string) {
@@ -335,8 +300,7 @@ export class CommunicationService {
 
         socket.on('data', (buffer) => {
             const data = readJSONfromBuffer(buffer);
-            ServiceLocator.foreignClientsDAO.saveClients(data.data.clients)
-            ServiceLocator.foreignChatroomsDAO.saveChatrooms(data.data.chatrooms)
+            this.updateDatabase(data)
         });
 
         socket.on('error', (err) => {
