@@ -296,7 +296,21 @@ export class CommunicationService {
             //     ServiceLocator.serversDAO.setLeaderId(maxId.toString())
             //     this.requestDataFromLeader(maxId.toString())
             // }
-            // ///////////////
+            /////////////////
+
+            let latestClock = {clock : -1, leaderid: -1};
+
+            for (const res of responses) {
+                if ((res.clock === latestClock.clock && res.leaderid > latestClock.leaderid) || res.clock > latestClock.clock) {
+                    latestClock = res;
+                }
+            }
+
+            if (latestClock.clock === -1) {
+                // TODO : save local server settings
+            } else {
+                // TODO : save leader id
+            }
 
         });
     }
