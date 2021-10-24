@@ -219,8 +219,8 @@ export class CommunicationService {
         //add all requests to promisesList
         const promisesList: Array<Promise<any>> = [];
 
-        serverList.getServerIds().filter(serverId => parseInt(serverId) != parseInt(getServerId())).forEach((serverId: string) => {
-            const { serverAddress: host, coordinationPort: port } = serverList.getServer(serverId);
+        serverList.getServerIds().filter(serverid => parseInt(serverid) != parseInt(getServerId())).forEach((serverid: string) => {
+            const { serverAddress: host, coordinationPort: port } = serverList.getServer(serverid);
             const socket = new Socket()
             socket.connect(port, host)
             socket.setTimeout(10000);
@@ -228,7 +228,7 @@ export class CommunicationService {
             const promise = new Promise((resolve, reject) => {
                 socket.on('data', (buffer) => {
                     const data = readJSONfromBuffer(buffer);
-                    const leaderId = data.leaderid
+                    const { leaderId } = data
                     resolve(leaderId)
                     socket.end()
                 });
@@ -266,7 +266,7 @@ export class CommunicationService {
                     } else {
                         //    set leader id
                         //    request data
-                        if(parseInt(leaderId) != parseInt(getServerId())){
+                        if (parseInt(leaderId) != parseInt(getServerId())) {
                             ServiceLocator.serversDAO.setLeaderId(leaderId)
                             this.requestDataFromLeader(leaderId)
                         }
@@ -274,7 +274,7 @@ export class CommunicationService {
                 }
             } else if (uniq.length === 2 && (uniq[0] === '' || uniq[1] === '')) {
                 const leaderId = uniq[0] === '' ? uniq[1] : uniq[0]
-                if(parseInt(leaderId) != parseInt(getServerId())){
+                if (parseInt(leaderId) != parseInt(getServerId())) {
                     ServiceLocator.serversDAO.setLeaderId(leaderId)
                     this.requestDataFromLeader(leaderId)
                 }
@@ -284,19 +284,18 @@ export class CommunicationService {
                 //multiple values
                 console.log('multiple values from list- current leader id', ServiceLocator.serversDAO.getLeaderId());
             }
-            
 
-             //// @Evindu /////
-             const maxId = Math.max(...uniq);
-             if (parseInt(getServerId(),10) > maxId) {
-                 ElectionService.startElection().then(() => {
-                     this.requestDataFromLeader(maxId.toString())
-                 })
-             } else {
-                 ServiceLocator.serversDAO.setLeaderId(maxId.toString())
-                 this.requestDataFromLeader(maxId.toString())
-             }
-             ///////////////
+            // //// @Evindu /////
+            // const maxId = Math.max(...uniq); // ??
+            // if (parseInt(getServerId(), 10) > maxId) {
+            //     ElectionService.startElection().then(() => {
+            //         this.requestDataFromLeader(maxId.toString())
+            //     })
+            // } else {
+            //     ServiceLocator.serversDAO.setLeaderId(maxId.toString())
+            //     this.requestDataFromLeader(maxId.toString())
+            // }
+            // ///////////////
 
         });
     }

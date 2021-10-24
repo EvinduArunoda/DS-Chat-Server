@@ -18,8 +18,8 @@ export default class Database{
         return this._chatRooms
     }
 
-    addChatRoom(roomId:string, serverId:string){
-        this._chatRooms.set(roomId, serverId)
+    addChatRoom(roomid:string, serverid:string){
+        this._chatRooms.set(roomid, serverid)
     }
 
     get leaderId(){
