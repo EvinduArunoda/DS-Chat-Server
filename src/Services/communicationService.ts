@@ -298,7 +298,7 @@ export class CommunicationService {
             // }
             /////////////////
 
-            let latestClock = {clock : -1, leaderid: -1};
+            let latestClock = {clock : -1, leaderid: -1, clients: {}, chatrooms: {}};
 
             for (const res of responses) {
                 if ((res.clock === latestClock.clock && res.leaderid > latestClock.leaderid) || res.clock > latestClock.clock) {
@@ -306,10 +306,11 @@ export class CommunicationService {
                 }
             }
 
-            if (latestClock.clock === -1) {
-                // TODO : save local server settings
-            } else {
+            if (latestClock.clock > 0) {
                 // TODO : save leader id
+                ServiceLocator.serversDAO.setLeaderId(latestClock.leaderid.toString());
+                ServiceLocator.foreignClientsDAO.saveClients(latestClock.clients);
+                ServiceLocator.foreignChatroomsDAO.saveChatrooms(latestClock.chatrooms);
             }
 
         });
