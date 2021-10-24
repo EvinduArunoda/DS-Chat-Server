@@ -307,7 +307,7 @@ export class CommunicationService {
             }
 
             if (latestClock.clock > 0) {
-                // TODO : save leader id
+                // TODO : save clock
                 ServiceLocator.serversDAO.setLeaderId(latestClock.leaderid.toString());
                 ServiceLocator.foreignClientsDAO.saveClients(latestClock.clients);
                 ServiceLocator.foreignChatroomsDAO.saveChatrooms(latestClock.chatrooms);
