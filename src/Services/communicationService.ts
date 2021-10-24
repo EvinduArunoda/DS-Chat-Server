@@ -25,9 +25,17 @@ export class CommunicationService {
                 if (ServiceLocator.foreignClientsDAO.isRegistered(identity)) {
                     resolve(true);
                 } else {
+                    // TODO: check if the leader has majority
+                    ServiceLocator.serversDAO.incrementClock()
                     ServiceLocator.foreignClientsDAO.addNewClient(serverid, identity)
                     // Inform other servers
-                    LeaderService.broadcastServers({ type: responseTypes.BROADCAST_NEWIDENTITY, approved: true, identity, serverid })
+                    LeaderService.broadcastServers({
+                        type: responseTypes.BROADCAST_SERVER_UPDATE,
+                        leaderid: ServiceLocator.serversDAO.getLeaderId(),
+                        clock: ServiceLocator.serversDAO.getClock(),
+                        clients: ServiceLocator.foreignClientsDAO.getClients(),
+                        chatrooms: ServiceLocator.foreignChatroomsDAO.getChatrooms()
+                    })
                     resolve(false);
                 }
             })
@@ -36,7 +44,6 @@ export class CommunicationService {
             const { serverAddress: leaderAddress, coordinationPort: leaderPort } = new ServerList().getServer(leaderid);
             socket.connect(leaderPort, leaderAddress)
             writeJSONtoSocket(socket, { type: responseTypes.IS_CLIENT, identity, serverid })
-            // TODO: what if there is no leader
             return new Promise((resolve, reject) => {
                 socket.on('data', (buffer) => {
                     const data = readJSONfromBuffer(buffer);
@@ -78,9 +85,17 @@ export class CommunicationService {
                 if (ServiceLocator.foreignChatroomsDAO.isRegistered(roomid)) {
                     resolve(true);
                 } else {
+                    // TODO: check if the leader has majority
+                    ServiceLocator.serversDAO.incrementClock()
                     ServiceLocator.foreignChatroomsDAO.addNewChatroom(serverid, roomid)
                     // Inform other servers
-                    LeaderService.broadcastServers({ type: responseTypes.BROADCAST_CREATEROOM, approved: true, roomid, serverid })
+                    LeaderService.broadcastServers({
+                        type: responseTypes.BROADCAST_SERVER_UPDATE,
+                        leaderid: ServiceLocator.serversDAO.getLeaderId(),
+                        clock: ServiceLocator.serversDAO.getClock(),
+                        clients: ServiceLocator.foreignClientsDAO.getClients(),
+                        chatrooms: ServiceLocator.foreignChatroomsDAO.getChatrooms()
+                    })
                     resolve(false);
                 }
             })
@@ -148,9 +163,17 @@ export class CommunicationService {
         // check if the server is the leader before connecting
         if (leaderid === serverid) {
             return new Promise((resolve, reject) => {
+                // TODO: check if the leader has majority
+                ServiceLocator.serversDAO.incrementClock()
                 ServiceLocator.foreignChatroomsDAO.removeChatroom(serverid, roomid);
                 // inform other servers
-                LeaderService.broadcastServers({ type: responseTypes.BROADCAST_DELETEROOM, roomid, serverid })
+                LeaderService.broadcastServers({
+                    type: responseTypes.BROADCAST_SERVER_UPDATE,
+                    leaderid: ServiceLocator.serversDAO.getLeaderId(),
+                    clock: ServiceLocator.serversDAO.getClock(),
+                    clients: ServiceLocator.foreignClientsDAO.getClients(),
+                    chatrooms: ServiceLocator.foreignChatroomsDAO.getChatrooms()
+                })
                 resolve(true)
             })
         } else {
@@ -163,7 +186,6 @@ export class CommunicationService {
                     const data = readJSONfromBuffer(buffer);
                     resolve(data.acknowledged)
                 });
-                // TODO: should work without deletion
                 socket.on('error', (error) => {
                     ElectionService.startElection().then(() => {
                         resolve(CommunicationService.informChatroomDeletion(roomid))
@@ -186,9 +208,17 @@ export class CommunicationService {
         // check if the server is the leader before connecting
         if (leaderid === serverid) {
             return new Promise((resolve, reject) => {
+                // TODO: check if the leader has majority
+                ServiceLocator.serversDAO.incrementClock()
                 ServiceLocator.foreignClientsDAO.removeClient(serverid, identity);
                 // inform other servers
-                LeaderService.broadcastServers({ type: responseTypes.BROADCAST_QUIT, identity, serverid })
+                LeaderService.broadcastServers({
+                    type: responseTypes.BROADCAST_SERVER_UPDATE,
+                    leaderid: ServiceLocator.serversDAO.getLeaderId(),
+                    clock: ServiceLocator.serversDAO.getClock(),
+                    clients: ServiceLocator.foreignClientsDAO.getClients(),
+                    chatrooms: ServiceLocator.foreignChatroomsDAO.getChatrooms()
+                })
                 resolve(true)
             })
         } else {
@@ -201,7 +231,6 @@ export class CommunicationService {
                     const data = readJSONfromBuffer(buffer);
                     resolve(data.acknowledged)
                 });
-                // TODO: should work without deletion
                 socket.on('error', (error) => {
                     ElectionService.startElection().then(() => {
                         resolve(CommunicationService.informClientDeletion(identity))
@@ -215,11 +244,12 @@ export class CommunicationService {
         }
     }
 
-    static updateDatabase(data: { clock: number, leaderid: string, clients: ClientsObject, chatrooms: ChatroomsObject}) {
-        ServiceLocator.serversDAO.updateClock(data.clock);
-        ServiceLocator.serversDAO.setLeaderId(data.leaderid);
-        ServiceLocator.foreignClientsDAO.saveClients(data.clients);
-        ServiceLocator.foreignChatroomsDAO.saveChatrooms(data.chatrooms);
+    static updateDatabase(data: { clock: number, leaderid: string, clients: ClientsObject, chatrooms: ChatroomsObject }) {
+        if (data.clock > ServiceLocator.serversDAO.getClock()) {
+            ServiceLocator.serversDAO.updateClock(data.clock);
+            ServiceLocator.foreignClientsDAO.saveClients(data.clients);
+            ServiceLocator.foreignChatroomsDAO.saveChatrooms(data.chatrooms);
+        }
     }
 
     static requestInitialData() {
@@ -277,15 +307,13 @@ export class CommunicationService {
 
             // update database
             if (updated) {
+                ServiceLocator.serversDAO.setLeaderId(latestData.leaderid);
                 this.updateDatabase(latestData)
             }
 
             // call election if current leader has lower id
             if (parseInt(latestData.leaderid) < parseInt(getServerId())) {
-                ElectionService.startElection().then(() => {
-                    // leader might have updated before election starts
-                    this.requestDataFromLeader(latestData.leaderid)
-                })
+                ElectionService.startElection()
             }
 
         });
@@ -310,23 +338,8 @@ export class CommunicationService {
 
     }
 
-    static saveNewIdentity(data: any) {
-        const { identity, serverid } = data
-        ServiceLocator.foreignClientsDAO.addNewClient(serverid, identity)
-    }
-
-    static saveNewChatRoom(data: any) {
-        const { roomid, serverid } = data
-        ServiceLocator.foreignChatroomsDAO.addNewChatroom(serverid, roomid)
-    }
-
-    static deleteIdentity(data: any) {
-        const { identity, serverid } = data
-        ServiceLocator.foreignClientsDAO.removeClient(serverid, identity)
-    }
-
-    static deleteChatRoom(data: any) {
-        const { roomid, serverid } = data
-        ServiceLocator.foreignChatroomsDAO.removeChatroom(serverid, roomid)
+    static saveUpdate(data: any) {
+        ServiceLocator.serversDAO.setLeaderId(data.leaderid);
+        this.updateDatabase(data)
     }
 }

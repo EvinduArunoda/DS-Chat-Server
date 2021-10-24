@@ -102,14 +102,8 @@ coordinationServer.on('connection', (sock: Socket) => {
             // recieved by other nodes
             case responseTypes.REQUEST_DATA:
                 return ServiceLocator.mainHandler.getLeaderHandler().provideLeaderState(sock)
-            case responseTypes.BROADCAST_NEWIDENTITY:
-                return ServiceLocator.mainHandler.getCommunicationHandler().broadcastNewIdentity(data)
-            case responseTypes.BROADCAST_CREATEROOM:
-                return ServiceLocator.mainHandler.getCommunicationHandler().broadcastCreateroom(data)
-            case responseTypes.BROADCAST_DELETEROOM:
-                return ServiceLocator.mainHandler.getCommunicationHandler().broadcastDeleteroom(data)
-            case responseTypes.BROADCAST_QUIT:
-                return ServiceLocator.mainHandler.getCommunicationHandler().broadcastQuit(data)
+            case responseTypes.BROADCAST_SERVER_UPDATE:
+                return ServiceLocator.mainHandler.getCommunicationHandler().broadcastServerUpdate(data)
             default:
                 break;
         }

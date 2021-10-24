@@ -13,10 +13,18 @@ export class LeaderService {
         if (ServiceLocator.foreignClientsDAO.isRegistered(identity)) {
             writeJSONtoSocket(sock, { exists: true, type: responseTypes.IS_CLIENT, identity });
         } else {
+            // TODO: check if the leader has majority
+            ServiceLocator.serversDAO.incrementClock()
             ServiceLocator.foreignClientsDAO.addNewClient(serverid, identity)
             writeJSONtoSocket(sock, { exists: false, type: responseTypes.IS_CLIENT, identity });
             // Inform other servers
-            LeaderService.broadcastServers({ type: responseTypes.BROADCAST_NEWIDENTITY, approved: true, identity, serverid })
+            LeaderService.broadcastServers({
+                type: responseTypes.BROADCAST_SERVER_UPDATE,
+                leaderid: ServiceLocator.serversDAO.getLeaderId(),
+                clock: ServiceLocator.serversDAO.getClock(),
+                clients: ServiceLocator.foreignClientsDAO.getClients(),
+                chatrooms: ServiceLocator.foreignChatroomsDAO.getChatrooms()
+            })
         }
         return true
     }
@@ -27,10 +35,18 @@ export class LeaderService {
         if (ServiceLocator.foreignChatroomsDAO.isRegistered(roomid)) {
             writeJSONtoSocket(sock, { exists: true, type: responseTypes.IS_CHATROOM, roomid });
         } else {
+            // TODO: check if the leader has majority
+            ServiceLocator.serversDAO.incrementClock()
             ServiceLocator.foreignChatroomsDAO.addNewChatroom(serverid, roomid)
             writeJSONtoSocket(sock, { exists: false, type: responseTypes.IS_CHATROOM, roomid });
             // Inform other servers
-            LeaderService.broadcastServers({ type: responseTypes.BROADCAST_CREATEROOM, approved: true, roomid, serverid })
+            LeaderService.broadcastServers({
+                type: responseTypes.BROADCAST_SERVER_UPDATE,
+                leaderid: ServiceLocator.serversDAO.getLeaderId(),
+                clock: ServiceLocator.serversDAO.getClock(),
+                clients: ServiceLocator.foreignClientsDAO.getClients(),
+                chatrooms: ServiceLocator.foreignChatroomsDAO.getChatrooms()
+            })
         }
         return true
     }
@@ -59,19 +75,35 @@ export class LeaderService {
 
     static acknowledgeChatroomDeletion(data: any, sock: Socket): boolean {
         const { roomid, serverid } = data
+        // TODO: check if the leader has majority
+        ServiceLocator.serversDAO.incrementClock()
         ServiceLocator.foreignChatroomsDAO.removeChatroom(serverid, roomid);
         writeJSONtoSocket(sock, { acknowledged: true, type: responseTypes.INFORM_ROOMDELETION, roomid });
         // inform other servers
-        LeaderService.broadcastServers({ type: responseTypes.BROADCAST_DELETEROOM, roomid, serverid })
+        LeaderService.broadcastServers({
+            type: responseTypes.BROADCAST_SERVER_UPDATE,
+            leaderid: ServiceLocator.serversDAO.getLeaderId(),
+            clock: ServiceLocator.serversDAO.getClock(),
+            clients: ServiceLocator.foreignClientsDAO.getClients(),
+            chatrooms: ServiceLocator.foreignChatroomsDAO.getChatrooms()
+        })
         return true
     }
 
     static acknowledgeClientDeletion(data: any, sock: Socket): boolean {
         const { identity, serverid } = data
+        // TODO: check if the leader has majority
+        ServiceLocator.serversDAO.incrementClock()
         ServiceLocator.foreignClientsDAO.removeClient(serverid, identity);
         writeJSONtoSocket(sock, { acknowledged: true, type: responseTypes.INFORM_CLIENTDELETION, identity });
         // inform other servers
-        LeaderService.broadcastServers({ type: responseTypes.BROADCAST_QUIT, identity, serverid })
+        LeaderService.broadcastServers({
+            type: responseTypes.BROADCAST_SERVER_UPDATE,
+            leaderid: ServiceLocator.serversDAO.getLeaderId(),
+            clock: ServiceLocator.serversDAO.getClock(),
+            clients: ServiceLocator.foreignClientsDAO.getClients(),
+            chatrooms: ServiceLocator.foreignChatroomsDAO.getChatrooms()
+        })
         return true
     }
 

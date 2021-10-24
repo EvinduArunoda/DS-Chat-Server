@@ -104,6 +104,7 @@ export class ElectionService {
                     //    set this server as leader n broadcast
                     const leaderid = getServerId();
                     ServiceLocator.serversDAO.setLeaderId(leaderid);
+                    // TODO: get latest clock (data) from other nodes
                     LeaderService.broadcastServers({ type: responseTypes.DECLARE_LEADER, serverid: leaderid });
                 }
             })
