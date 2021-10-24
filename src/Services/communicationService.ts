@@ -47,7 +47,7 @@ export class CommunicationService {
             return new Promise((resolve, reject) => {
                 socket.on('data', (buffer) => {
                     const data = readJSONfromBuffer(buffer);
-                    if (data.exists) {
+                    if (!data.acknowledged || data.exists) {
                         resolve(true)
                     }
                     else {
@@ -107,7 +107,7 @@ export class CommunicationService {
             return new Promise((resolve, reject) => {
                 socket.on('data', (buffer) => {
                     const data = readJSONfromBuffer(buffer);
-                    if (data.exists) {
+                    if (!data.acknowledged || data.exists) {
                         resolve(true)
                     }
                     else {
@@ -184,6 +184,9 @@ export class CommunicationService {
             return new Promise((resolve, reject) => {
                 socket.on('data', (buffer) => {
                     const data = readJSONfromBuffer(buffer);
+                    if(!data.acknowledged) {
+                        // TODO: add to message queue
+                    }
                     resolve(data.acknowledged)
                 });
                 socket.on('error', (error) => {
@@ -229,6 +232,9 @@ export class CommunicationService {
             return new Promise((resolve, reject) => {
                 socket.on('data', (buffer) => {
                     const data = readJSONfromBuffer(buffer);
+                    if(!data.acknowledged) {
+                        // TODO: add to message queue
+                    }
                     resolve(data.acknowledged)
                 });
                 socket.on('error', (error) => {
