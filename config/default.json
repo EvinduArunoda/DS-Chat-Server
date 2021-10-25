@@ -1,0 +1,7 @@
+{
+    "servers": {
+        "1": { "serverAddress": "localhost", "clientsPort": 4444, "coordinationPort": 5555 },
+        "2": { "serverAddress": "localhost", "clientsPort": 4445, "coordinationPort": 5556 },
+        "3": { "serverAddress": "localhost", "clientsPort": 4446, "coordinationPort": 5557 }
+    }
+}
