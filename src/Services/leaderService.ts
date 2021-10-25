@@ -1,5 +1,5 @@
 import { Socket } from "net";
-import { getServerId, isValidIdentity, writeJSONtoSocket } from "../Utils/utils";
+import { getServerId, isValidIdentity, readJSONfromBuffer, writeJSONtoSocket } from "../Utils/utils";
 import { ServiceLocator } from "../Utils/serviceLocator";
 import { ServerList } from "../Constants/servers";
 import { responseTypes } from "../Constants/responseTypes";
@@ -8,8 +8,53 @@ export class LeaderService {
     constructor() { }
 
     static hasMajority(): boolean {
-        // TODO: check if the leader has majority
-        return true
+        // check if the leader has majority
+        const serverList = new ServerList()
+        //add all requests to promisesList
+        const promisesList: Array<Promise<any>> = [];
+
+        serverList.getServerIds().filter(serverid => parseInt(serverid) != parseInt(getServerId())).forEach((serverid: string) => {
+            const { serverAddress: host, coordinationPort: port } = serverList.getServer(serverid);
+            const socket = new Socket()
+            socket.connect(port, host)
+            socket.setTimeout(1000);
+            writeJSONtoSocket(socket, { type: responseTypes.HEARTBEAT, leaderid: getServerId(), clock: ServiceLocator.serversDAO.getClock(), })
+            const promise = new Promise((resolve, reject) => {
+                socket.on('data', (buffer) => {
+                    const data: {serverid: string} = readJSONfromBuffer(buffer);
+                    const { serverid } = data
+                    resolve({ serverid })
+                    socket.end()
+                });
+                // server does not response
+                socket.on('timeout', () => {
+                    resolve(null)
+                    socket.end()
+                });
+
+                socket.on('error', (err) => {
+                    console.log(' request leader id broadcast error:', err.message)
+                    resolve(null)
+                    socket.end()
+                })
+            });
+            promisesList.push(promise);
+        });
+
+        let hasMajority = false
+
+        Promise.all(promisesList).then((values) => {
+            const serverids: string[] = values.filter(value => value !== null).map(res => res.serverid)
+            // check if responses have a higher server id
+            const hasHigherValue = serverids.filter(id => parseInt(id) > parseInt(getServerId())).length > 0
+            if (hasHigherValue) return
+
+            // update available server count
+            ServiceLocator.serversDAO.updateAvailableServers(serverids)
+            hasMajority =  serverids.length >= new ServerList().getMajorityCount()
+        });
+
+        return hasMajority
     }
 
     static checkClientExists(data: any, sock: Socket): boolean {
@@ -17,7 +62,7 @@ export class LeaderService {
         // Check database
         if (ServiceLocator.foreignClientsDAO.isRegistered(identity)) {
             writeJSONtoSocket(sock, { acknowledged: true, exists: true, type: responseTypes.IS_CLIENT, identity });
-        // check if the leader has majority
+            // check if the leader has majority
         } else if (this.hasMajority()) {
             ServiceLocator.serversDAO.incrementClock()
             ServiceLocator.foreignClientsDAO.addNewClient(serverid, identity)
@@ -41,7 +86,7 @@ export class LeaderService {
         // Check database
         if (ServiceLocator.foreignChatroomsDAO.isRegistered(roomid)) {
             writeJSONtoSocket(sock, { acknowledged: true, exists: true, type: responseTypes.IS_CHATROOM, roomid });
-        // check if the leader has majority
+            // check if the leader has majority
         } else if (this.hasMajority()) {
             ServiceLocator.serversDAO.incrementClock()
             ServiceLocator.foreignChatroomsDAO.addNewChatroom(serverid, roomid)

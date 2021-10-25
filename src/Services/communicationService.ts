@@ -141,6 +141,7 @@ export class CommunicationService {
         const leaderid = ServiceLocator.serversDAO.getLeaderId()
         const serverid = getServerId()
         // check if the server is the leader before connecting
+        // TODO: may be changed
         if (leaderid === serverid) {
             return new Promise((resolve, reject) => {
                 resolve(ServiceLocator.foreignChatroomsDAO.getChatroomServer(roomid))
@@ -359,5 +360,13 @@ export class CommunicationService {
     static saveUpdate(data: any) {
         ServiceLocator.serversDAO.setLeaderId(data.leaderid);
         this.updateDatabase(data)
+    }
+
+    static respondHeartBeat(data: any, socket: Socket) {
+        const {leaderid, clock} = data;
+        writeJSONtoSocket(socket, { type: responseTypes.HEARTBEAT, serverid: getServerId() })
+        if (getServerId() > leaderid) {
+            ElectionService.startElection()
+        }
     }
 }

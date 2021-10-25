@@ -15,14 +15,19 @@ export class ServerList {
         return this.serverList[parseInt(serverid)];
     }
 
-    getHigherUpServers(): Server[]{
+    getHigherUpServers(): Server[] {
         const higherUpServers = []
-        for (let key in this.serverList){
-            if(parseInt(key) < parseInt(getServerId())){
+        for (let key in this.serverList) {
+            if (parseInt(key) < parseInt(getServerId())) {
                 higherUpServers.push(this.serverList[key])
             }
         }
         return higherUpServers
+    }
+
+    getMajorityCount(): number {
+        const serverCount = _.keys(this.serverList).length
+        return Math.floor(serverCount / 2) + 1
     }
 
 }
