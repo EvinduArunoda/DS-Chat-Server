@@ -4,7 +4,6 @@ import { getServerId } from "../Utils/utils";
 const config = require('config');
 const servers = config("servers");
 
-// TODO: Read from config file
 export class ServerList {
     private serverList: ServerInterface = servers;
 
