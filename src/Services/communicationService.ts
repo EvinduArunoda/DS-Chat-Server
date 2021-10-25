@@ -24,8 +24,8 @@ export class CommunicationService {
                 // Check database
                 if (ServiceLocator.foreignClientsDAO.isRegistered(identity)) {
                     resolve(true);
-                } else {
-                    // TODO: check if the leader has majority
+                    // check if the leader has majority
+                } else if (LeaderService.hasMajority()) {
                     ServiceLocator.serversDAO.incrementClock()
                     ServiceLocator.foreignClientsDAO.addNewClient(serverid, identity)
                     // Inform other servers
@@ -37,6 +37,8 @@ export class CommunicationService {
                         chatrooms: ServiceLocator.foreignChatroomsDAO.getChatrooms()
                     })
                     resolve(false);
+                } else {
+                    resolve(true)
                 }
             })
         } else {
@@ -84,8 +86,8 @@ export class CommunicationService {
             return new Promise((resolve, reject) => {
                 if (ServiceLocator.foreignChatroomsDAO.isRegistered(roomid)) {
                     resolve(true);
-                } else {
-                    // TODO: check if the leader has majority
+                    // check if the leader has majority
+                } else if (LeaderService.hasMajority()) {
                     ServiceLocator.serversDAO.incrementClock()
                     ServiceLocator.foreignChatroomsDAO.addNewChatroom(serverid, roomid)
                     // Inform other servers
@@ -97,6 +99,8 @@ export class CommunicationService {
                         chatrooms: ServiceLocator.foreignChatroomsDAO.getChatrooms()
                     })
                     resolve(false);
+                } else {
+                    resolve(true)
                 }
             })
         } else {
@@ -163,18 +167,22 @@ export class CommunicationService {
         // check if the server is the leader before connecting
         if (leaderid === serverid) {
             return new Promise((resolve, reject) => {
-                // TODO: check if the leader has majority
-                ServiceLocator.serversDAO.incrementClock()
-                ServiceLocator.foreignChatroomsDAO.removeChatroom(serverid, roomid);
-                // inform other servers
-                LeaderService.broadcastServers({
-                    type: responseTypes.BROADCAST_SERVER_UPDATE,
-                    leaderid: ServiceLocator.serversDAO.getLeaderId(),
-                    clock: ServiceLocator.serversDAO.getClock(),
-                    clients: ServiceLocator.foreignClientsDAO.getClients(),
-                    chatrooms: ServiceLocator.foreignChatroomsDAO.getChatrooms()
-                })
-                resolve(true)
+                // check if the leader has majority
+                if (LeaderService.hasMajority()) {
+                    ServiceLocator.serversDAO.incrementClock()
+                    ServiceLocator.foreignChatroomsDAO.removeChatroom(serverid, roomid);
+                    // inform other servers
+                    LeaderService.broadcastServers({
+                        type: responseTypes.BROADCAST_SERVER_UPDATE,
+                        leaderid: ServiceLocator.serversDAO.getLeaderId(),
+                        clock: ServiceLocator.serversDAO.getClock(),
+                        clients: ServiceLocator.foreignClientsDAO.getClients(),
+                        chatrooms: ServiceLocator.foreignChatroomsDAO.getChatrooms()
+                    })
+                    resolve(true)
+                } else {
+                    // TODO: add to message queue
+                }
             })
         } else {
             const socket = new Socket()
@@ -184,7 +192,7 @@ export class CommunicationService {
             return new Promise((resolve, reject) => {
                 socket.on('data', (buffer) => {
                     const data = readJSONfromBuffer(buffer);
-                    if(!data.acknowledged) {
+                    if (!data.acknowledged) {
                         // TODO: add to message queue
                     }
                     resolve(data.acknowledged)
@@ -211,18 +219,22 @@ export class CommunicationService {
         // check if the server is the leader before connecting
         if (leaderid === serverid) {
             return new Promise((resolve, reject) => {
-                // TODO: check if the leader has majority
-                ServiceLocator.serversDAO.incrementClock()
-                ServiceLocator.foreignClientsDAO.removeClient(serverid, identity);
-                // inform other servers
-                LeaderService.broadcastServers({
-                    type: responseTypes.BROADCAST_SERVER_UPDATE,
-                    leaderid: ServiceLocator.serversDAO.getLeaderId(),
-                    clock: ServiceLocator.serversDAO.getClock(),
-                    clients: ServiceLocator.foreignClientsDAO.getClients(),
-                    chatrooms: ServiceLocator.foreignChatroomsDAO.getChatrooms()
-                })
-                resolve(true)
+                // check if the leader has majority
+                if (LeaderService.hasMajority()) {
+                    ServiceLocator.serversDAO.incrementClock()
+                    ServiceLocator.foreignClientsDAO.removeClient(serverid, identity);
+                    // inform other servers
+                    LeaderService.broadcastServers({
+                        type: responseTypes.BROADCAST_SERVER_UPDATE,
+                        leaderid: ServiceLocator.serversDAO.getLeaderId(),
+                        clock: ServiceLocator.serversDAO.getClock(),
+                        clients: ServiceLocator.foreignClientsDAO.getClients(),
+                        chatrooms: ServiceLocator.foreignChatroomsDAO.getChatrooms()
+                    })
+                    resolve(true)
+                } else {
+                    // TODO: add to message queue  
+                }
             })
         } else {
             const socket = new Socket()
@@ -232,7 +244,7 @@ export class CommunicationService {
             return new Promise((resolve, reject) => {
                 socket.on('data', (buffer) => {
                     const data = readJSONfromBuffer(buffer);
-                    if(!data.acknowledged) {
+                    if (!data.acknowledged) {
                         // TODO: add to message queue
                     }
                     resolve(data.acknowledged)
