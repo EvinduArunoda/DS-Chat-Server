@@ -7,11 +7,18 @@ export class ServersDAO {
     private availableServers: string[] = [];
     private deletedClients: string[] = []
     private deletedChatrooms: string[] = []
+    private restarted: boolean = true
 
     constructor() { }
 
     getLeaderId(): string {
         return this.leaderid;
+    }
+
+    getRestarted(): boolean {
+        const value = this.restarted;
+        this.restarted = false;
+        return value;
     }
 
     setLeaderId(leaderid: string) {
@@ -44,11 +51,15 @@ export class ServersDAO {
     }
 
     getDeletedClients(): string[] {
-        return this.deletedClients
+        const values = this.deletedClients;
+        this.deletedClients = [];
+        return values;
     }
 
     getDeletedChatrooms(): string[] {
-        return this.deletedChatrooms
+        const values = this.deletedChatrooms;
+        this.deletedChatrooms = [];
+        return values;
     }
 
     addDeletedClient(identity: string) {
