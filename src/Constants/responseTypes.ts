@@ -18,12 +18,10 @@ export const responseTypes = {
     IS_CHATROOM: "ischatroom",
     CHATROOM_SERVER: "chatroomserver",
     BROADCAST_SERVER_UPDATE: "broadcastserverupdate",
-    // BROADCAST_QUIT: "broadcastquit",
-    // BROADCAST_CREATEROOM: "broadcastcreateroom",
-    // BROADCAST_DELETEROOM: "broadcastdeleteroom",
     INFORM_ROOMDELETION: "informroomdeletion",
     INFORM_CLIENTDELETION: "informclientdeletion",
     START_ELECTION: "startelection",
     DECLARE_LEADER: "declareleader",
+    HEARTBEAT: "heartbeat",
     REQUEST_DATA: "requestdata"
 }

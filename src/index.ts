@@ -4,6 +4,7 @@ import { responseTypes } from "./Constants/responseTypes";
 import { ServiceLocator } from "./Utils/serviceLocator";
 import { ServerList } from "./Constants/servers";
 import { CommunicationService } from "./Services/communicationService";
+import { LeaderService } from "./Services/leaderService";
 
 
 // server id
@@ -104,6 +105,8 @@ coordinationServer.on('connection', (sock: Socket) => {
                 return ServiceLocator.mainHandler.getLeaderHandler().provideLeaderState(sock)
             case responseTypes.BROADCAST_SERVER_UPDATE:
                 return ServiceLocator.mainHandler.getCommunicationHandler().broadcastServerUpdate(data)
+            case responseTypes.HEARTBEAT:
+                return ServiceLocator.mainHandler.getCommunicationHandler().respondHeartBeat(data, sock)
             default:
                 break;
         }
@@ -124,3 +127,12 @@ coordinationServer.on('connection', (sock: Socket) => {
 coordinationServer.listen(coordinationPort, serverAddress, () => {
     console.log(`Coordination server port opened at ${serverAddress}:${coordinationPort}\n`);
 });
+
+setTimeout(() => {
+    setInterval(() => {
+        // send heartbeat if leader
+        if(getServerId() === ServiceLocator.serversDAO.getLeaderId()) {
+            LeaderService.hasMajority()
+        }
+    }, 10000)
+}, 10000)

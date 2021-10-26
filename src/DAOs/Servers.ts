@@ -1,9 +1,12 @@
+import { ServerList } from "../Constants/servers";
 import { getServerId } from "../Utils/utils";
 
 export class ServersDAO {
     private leaderid: string = getServerId();
     private leaderClock: number = 0;
-    private availableServers: Set<string> = new Set<string>();
+    private availableServers: string[] = [];
+    private deletedClients: string[] = []
+    private deletedChatrooms: string[] = []
 
     constructor() { }
 
@@ -26,5 +29,21 @@ export class ServersDAO {
 
     getClock(): number {
         return this.leaderClock
+    }
+
+    updateAvailableServers(servers: string[]) {
+        this.availableServers = servers
+    }
+
+    hasLeaderMajority(): boolean {
+        return this.availableServers.length >= new ServerList().getMajorityCount()
+    }
+
+    getDeletedClients(): string[] {
+        return this.deletedClients
+    }
+
+    getDeletedChatrooms(): string[] {
+        return this.deletedChatrooms
     }
 }
