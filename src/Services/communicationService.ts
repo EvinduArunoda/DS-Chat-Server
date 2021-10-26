@@ -369,8 +369,27 @@ export class CommunicationService {
     }
 
     static respondHeartBeat(data: any, socket: Socket) {
-        const { leaderid, clock } = data;
-        writeJSONtoSocket(socket, { type: responseTypes.HEARTBEAT, serverid: getServerId() })
+        const { leaderid, hasMajorityNow } = data;
+        if (hasMajorityNow) {
+            // send messagequeue and clear
+            writeJSONtoSocket(socket,
+                {
+                    type: responseTypes.HEARTBEAT,
+                    serverid: getServerId(),
+                    deletedClients: ServiceLocator.serversDAO.getDeletedClients(),
+                    deletedChatrooms: ServiceLocator.serversDAO.getDeletedChatrooms(),
+                    restarted: ServiceLocator.serversDAO.getRestarted()
+                })
+        } else {
+            writeJSONtoSocket(socket,
+                {
+                    type: responseTypes.HEARTBEAT,
+                    serverid: getServerId(),
+                    deletedClients: [],
+                    deletedChatrooms: [],
+                    restarted: false
+                })
+        }
         if (getServerIdNumber() > leaderid) {
             ElectionService.startElection()
         }

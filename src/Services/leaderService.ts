@@ -7,23 +7,24 @@ import { responseTypes } from "../Constants/responseTypes";
 export class LeaderService {
     constructor() { }
 
-    static hasMajority(): boolean {
+    static hasMajority(isHeartbeat: boolean = false): boolean {
         // check if the leader has majority
         const serverList = new ServerList()
         //add all requests to promisesList
         const promisesList: Array<Promise<any>> = [];
+        const hasMajorityNow = isHeartbeat && ServiceLocator.serversDAO.getAvailableServers().length >= new ServerList().getMajorityCount();
 
         serverList.getServerIds().filter(serverid => parseInt(serverid) != getServerIdNumber()).forEach((serverid: string) => {
             const { serverAddress: host, coordinationPort: port } = serverList.getServer(serverid);
             const socket = new Socket()
             socket.connect(port, host)
             socket.setTimeout(1000);
-            writeJSONtoSocket(socket, { type: responseTypes.HEARTBEAT, leaderid: getServerId(), clock: ServiceLocator.serversDAO.getClock(), })
+            writeJSONtoSocket(socket, { type: responseTypes.HEARTBEAT, leaderid: getServerId(), hasMajorityNow })
             const promise = new Promise((resolve, reject) => {
                 socket.on('data', (buffer) => {
-                    const data: {serverid: string} = readJSONfromBuffer(buffer);
-                    const { serverid } = data
-                    resolve({ serverid })
+                    const data = readJSONfromBuffer(buffer);
+                    const { serverid, deletedClients, deletedChatrooms, restarted } = data
+                    resolve({ serverid, deletedClients, deletedChatrooms, restarted })
                     socket.end()
                 });
                 // server does not response
@@ -44,14 +45,38 @@ export class LeaderService {
         let hasMajority = false
 
         Promise.all(promisesList).then((values) => {
-            const serverids: string[] = values.filter(value => value !== null).map(res => res.serverid)
+            const responses = values.filter(value => value !== null)
+            const serverids: string[] = responses.map(res => res.serverid)
+
+            if (hasMajorityNow) {
+                ServiceLocator.serversDAO.incrementClock()
+                // update db with responses
+                for (const res of responses) {
+                    const { serverid, deletedClients, deletedChatrooms, restarted } = res
+                    // get the highest leader id with letest clock
+                    ServiceLocator.foreignChatroomsDAO.removeChatrooms(serverid, deletedChatrooms)
+                    ServiceLocator.foreignClientsDAO.removeClients(serverid, deletedClients)
+                    if (restarted) {
+                        ServiceLocator.foreignClientsDAO.removeServer(serverid)
+                        ServiceLocator.foreignClientsDAO.removeServer(serverid)
+                    }
+                }
+                // inform other servers
+                LeaderService.broadcastServers({
+                    type: responseTypes.BROADCAST_SERVER_UPDATE,
+                    leaderid: ServiceLocator.serversDAO.getLeaderId(),
+                    clock: ServiceLocator.serversDAO.getClock(),
+                    clients: ServiceLocator.foreignClientsDAO.getClients(),
+                    chatrooms: ServiceLocator.foreignChatroomsDAO.getChatrooms()
+                })
+            }
             // check if responses have a higher server id
             const hasHigherValue = serverids.filter(id => parseInt(id) > getServerIdNumber()).length > 0
             if (hasHigherValue) return
 
             // update available server count
             ServiceLocator.serversDAO.updateAvailableServers(serverids)
-            hasMajority =  serverids.length >= new ServerList().getMajorityCount()
+            hasMajority = serverids.length >= new ServerList().getMajorityCount()
         });
 
         return hasMajority
