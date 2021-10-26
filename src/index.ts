@@ -131,7 +131,7 @@ coordinationServer.listen(coordinationPort, serverAddress, () => {
 setTimeout(() => {
     cron.schedule('*/10 * * * * *', () => {
         if(getServerId() === ServiceLocator.serversDAO.getLeaderId()) {
-            LeaderService.hasMajority()
+            LeaderService.hasMajority(true)
         }
     });
 }, 10000); // Wait for 10 seconds at begin
