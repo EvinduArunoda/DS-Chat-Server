@@ -1,13 +1,14 @@
 import _ from "lodash";
 import { ServerList } from "../Constants/servers";
 import {ChatroomsObject, ForeignChatroomInterface} from "../Interfaces/ForeignChatroomInterface";
+import { ServiceLocator } from "../Utils/serviceLocator";
 
 export class ForeignChatroomsDAO {
     private chatrooms: ForeignChatroomInterface = {};
 
     constructor() {
         new ServerList().getServerIds().forEach((serverName: string) => {
-            this.chatrooms[serverName] = new Set<string>()
+            this.chatrooms[serverName] = new Set<string>().add(`MainHall-s${serverName}`)
         })
     }
 
