@@ -13,6 +13,26 @@ export class ForeignChatroomsDAO {
     }
 
     /**
+     * remove chatrooms
+     * @param identities client ids
+     * @param serverid server id
+     */
+     removeChatrooms(serverid: string, identities: string[]): void {
+        for (const el of identities) {
+            this.chatrooms[serverid].delete(el);
+            console.log("ForeignChatroomsDAO.deleteClient", serverid, el);
+        }
+    }
+
+    /**
+     * remove server
+     * @param serverid server id
+     */
+    removeServer(serverid: string): void {
+        this.chatrooms[serverid] = new Set();
+    }
+
+    /**
      * check if the roomid is unique
      * @param roomid client id
      * @returns boolean

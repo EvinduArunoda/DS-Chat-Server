@@ -44,6 +44,26 @@ export class ForeignClientsDAO {
     }
 
     /**
+     * remove clients
+     * @param identities client ids
+     * @param serverid server id
+     */
+    removeClients(serverid: string, identities: string[]): void {
+        for (const el of identities) {
+            this.clients[serverid].delete(el);
+            console.log("ForeignClientsDAO.deleteClient", serverid, el);
+        }
+    }
+
+    /**
+     * remove server
+     * @param serverid server id
+     */
+    removeServer(serverid: string): void {
+        this.clients[serverid] = new Set();
+    }
+
+    /**
      * get clients
      * @returns ClientsObject
      */

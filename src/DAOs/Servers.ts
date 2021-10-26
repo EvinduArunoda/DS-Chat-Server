@@ -5,9 +5,9 @@ export class ServersDAO {
     private leaderid: string = getServerId();
     private leaderClock: number = 0;
     private availableServers: string[] = [];
-    private deletedClients: string[] = []
-    private deletedChatrooms: string[] = []
-    private restarted: boolean = true
+    private deletedClients: string[] = [];
+    private deletedChatrooms: string[] = [];
+    private restarted: boolean = true;
 
     constructor() { }
 
