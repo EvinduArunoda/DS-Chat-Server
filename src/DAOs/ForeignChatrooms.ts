@@ -39,10 +39,10 @@ export class ForeignChatroomsDAO {
      * @param roomid client id
      * @returns serverid
      */
-    getChatroomServer(roomid: string): string | undefined {
+    getChatroomServer(roomid: string, avaiableServers: string[]): string | undefined {
         // check if the clients Map<string, Set<string>> has roomid and return serverid
-        // TODO: return chatrooms of avaiable servers
-        return _.findKey(this.chatrooms, (server) => server.has(roomid))
+        const serverID = _.findKey(this.chatrooms, (server) => server.has(roomid));
+        return (serverID && avaiableServers.includes(serverID)) ? serverID : undefined;
     }
 
     /**

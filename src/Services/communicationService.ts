@@ -140,10 +140,13 @@ export class CommunicationService {
         // {type:'chatroomserver', roomid:roomid}
         const leaderid = ServiceLocator.serversDAO.getLeaderId()
         const serverid = getServerId()
+
+        const avilableServers = ServiceLocator.serversDAO.getAvailableServers();
+
         // check if the server is the leader before connecting
         if (leaderid === serverid) {
             return new Promise((resolve, reject) => {
-                resolve(ServiceLocator.foreignChatroomsDAO.getChatroomServer(roomid))
+                resolve(ServiceLocator.foreignChatroomsDAO.getChatroomServer(roomid, avilableServers))
             })
         } else {
             const socket = new Socket()
