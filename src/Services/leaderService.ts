@@ -108,7 +108,8 @@ export class LeaderService {
     static getChatroomServer(data: any, sock: Socket): boolean {
         const { roomid } = data
         // Check database
-        const serverid = ServiceLocator.foreignChatroomsDAO.getChatroomServer(roomid)
+        const availableServers = ServiceLocator.serversDAO.getAvailableServers();
+        const serverid = ServiceLocator.foreignChatroomsDAO.getChatroomServer(roomid, availableServers)
         writeJSONtoSocket(sock, { serverid, type: responseTypes.CHATROOM_SERVER, roomid });
         return true
     }
