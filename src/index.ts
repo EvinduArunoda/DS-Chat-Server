@@ -88,7 +88,7 @@ coordinationServer.on('connection', (sock: Socket) => {
             case responseTypes.START_ELECTION:
                 return ServiceLocator.electionHandler.approveElection(data, sock)
             case responseTypes.DECLARE_LEADER:
-                return ServiceLocator.electionHandler.setElectedLeader(data)
+                return ServiceLocator.electionHandler.setElectedLeader(data, sock)
             // recieved by leader
             case responseTypes.IS_CLIENT:
                 return ServiceLocator.mainHandler.getLeaderHandler().isClient(data, sock)

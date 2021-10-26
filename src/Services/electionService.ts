@@ -8,8 +8,15 @@ import { getServerId, getServerIdNumber, readJSONfromBuffer, writeJSONtoSocket }
 import { LeaderService } from "./leaderService";
 
 export class ElectionService {
-    static setElectedLeader(data: any): boolean {
+    static setElectedLeader(data: any, sock: Socket): boolean {
         const { serverid: leaderid } = data
+        writeJSONtoSocket(sock, {
+            type: responseTypes.DECLARE_LEADER,
+            leaderid: ServiceLocator.serversDAO.getLeaderId(),
+            clock: ServiceLocator.serversDAO.getClock(),
+            clients: ServiceLocator.foreignClientsDAO.getClients(),
+            chatrooms: ServiceLocator.foreignChatroomsDAO.getChatrooms()
+        })
         ServiceLocator.serversDAO.setLeaderId(leaderid)
         console.log('leaderid', leaderid)
         return true
@@ -38,7 +45,7 @@ export class ElectionService {
         }
     }
 
-    static async startElection(reelection?:boolean): Promise<void> {
+    static async startElection(reelection?: boolean): Promise<void> {
         // Ask higher id servers, wait T0
         // if get bullied, wait T1. If before the timeout, leader is not elected restart election
         // else, elect itsef as the leader and broadcast every server
@@ -95,11 +102,11 @@ export class ElectionService {
             promisesList.push(promise);
         });
 
-        if(promisesList.length > 0){
+        if (promisesList.length > 0) {
             Promise.all(promisesList).then(values => {
                 console.log('ELECTION RESULTS (with socket timeouts)', values)
                 let uniq = [...new Set(values)];
-                if(uniq.includes(false)){
+                if (uniq.includes(false)) {
                     //  set timeout; wait for leader id; if not re elect
                     //  timeout can be set a lower value than T1 + ...
                     setTimeout(() => {
@@ -110,11 +117,11 @@ export class ElectionService {
                             this.startElection(true)
                         }
                     }, higherUpServers.length == 1 ? 200 : 1000 * getServerIdNumber())
-                }else{
+                } else {
                     //    set this server as leader n broadcast
                     const leaderid = getServerId();
                     ServiceLocator.serversDAO.setLeaderId(leaderid);
-                    
+
                     // TODO: get latest clock (data) from other nodes
 
                     const serverList = new ServerList()
@@ -126,7 +133,7 @@ export class ElectionService {
                         const socket = new Socket()
                         socket.connect(port, host)
                         socket.setTimeout(10000);
-                        writeJSONtoSocket(socket, { type: responseTypes.REQUEST_DATA })
+                        writeJSONtoSocket(socket, { type: responseTypes.DECLARE_LEADER, serverid: leaderid })
                         const promise = new Promise((resolve, reject) => {
                             socket.on('data', (buffer) => {
                                 const data = readJSONfromBuffer(buffer);
@@ -151,6 +158,7 @@ export class ElectionService {
 
                     Promise.all(promisesList).then((values) => {
                         const responses = values.filter(value => value !== null)
+                        const serverids: string[] = values.filter(value => value !== null).map(res => res.serverid)
 
                         let latestData = {
                             leaderid: ServiceLocator.serversDAO.getLeaderId(),
@@ -174,9 +182,10 @@ export class ElectionService {
                             this.updateDatabase(latestData)
                         }
 
+                        // update available server count
+                        ServiceLocator.serversDAO.updateAvailableServers(serverids)
+
                     });
-                    
-                    LeaderService.broadcastServers({ type: responseTypes.DECLARE_LEADER, serverid: leaderid });
                 }
             })
         }
