@@ -5,7 +5,7 @@ import { ServiceLocator } from "./Utils/serviceLocator";
 import { ServerList } from "./Constants/servers";
 import { CommunicationService } from "./Services/communicationService";
 import { LeaderService } from "./Services/leaderService";
-
+const cron = require('node-cron');
 
 // server id
 if (!process.env.SERVER_ID) {
@@ -129,10 +129,9 @@ coordinationServer.listen(coordinationPort, serverAddress, () => {
 });
 
 setTimeout(() => {
-    setInterval(() => {
-        // send heartbeat if leader
+    cron.schedule('* * * * *', () => {
         if(getServerId() === ServiceLocator.serversDAO.getLeaderId()) {
             LeaderService.hasMajority()
         }
-    }, 10000)
-}, 10000)
+    });
+}, 10000);
