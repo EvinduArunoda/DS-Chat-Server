@@ -2,7 +2,7 @@ import { Socket } from "net";
 import { responseTypes } from "../Constants/responseTypes";
 import { ServerList } from "../Constants/servers";
 import { ServiceLocator } from "../Utils/serviceLocator";
-import { getServerId, readJSONfromBuffer, writeJSONtoSocket } from "../Utils/utils";
+import { getServerId, getServerIdNumber, readJSONfromBuffer, writeJSONtoSocket } from "../Utils/utils";
 import { LeaderService } from "./leaderService";
 import { ElectionService } from "./electionService";
 import { ClientsObject } from "../Interfaces/ForeignClientInterface";
@@ -283,7 +283,7 @@ export class CommunicationService {
         //add all requests to promisesList
         const promisesList: Array<Promise<any>> = [];
 
-        serverList.getServerIds().filter(serverid => parseInt(serverid) != parseInt(getServerId())).forEach((serverid: string) => {
+        serverList.getServerIds().filter(serverid => parseInt(serverid) != getServerIdNumber()).forEach((serverid: string) => {
             const { serverAddress: host, coordinationPort: port } = serverList.getServer(serverid);
             const socket = new Socket()
             socket.connect(port, host)
@@ -337,7 +337,7 @@ export class CommunicationService {
             }
 
             // call election if current leader has lower id
-            if (parseInt(latestData.leaderid) < parseInt(getServerId())) {
+            if (parseInt(latestData.leaderid) < getServerIdNumber()) {
                 ElectionService.startElection()
             }
 
@@ -371,7 +371,7 @@ export class CommunicationService {
     static respondHeartBeat(data: any, socket: Socket) {
         const { leaderid, clock } = data;
         writeJSONtoSocket(socket, { type: responseTypes.HEARTBEAT, serverid: getServerId() })
-        if (getServerId() > leaderid) {
+        if (getServerIdNumber() > leaderid) {
             ElectionService.startElection()
         }
     }
