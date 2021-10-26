@@ -24,7 +24,7 @@ export class ElectionService {
 
     static async approveElection(data: any, sock: Socket): Promise<boolean> {
         const { serverid } = data
-        if (serverid > getServerId()) {
+        if (serverid < getServerId()) {
             writeJSONtoSocket(sock, { type: responseTypes.START_ELECTION, serverid, approved: false })
             ElectionService.startElection().then(() => {
             })
