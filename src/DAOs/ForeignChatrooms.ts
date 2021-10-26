@@ -1,6 +1,6 @@
 import _ from "lodash";
 import { ServerList } from "../Constants/servers";
-import {ChatroomsObject, ForeignChatroomInterface} from "../Interfaces/ForeignChatroomInterface";
+import { ChatroomsObject, ForeignChatroomInterface } from "../Interfaces/ForeignChatroomInterface";
 import { ServiceLocator } from "../Utils/serviceLocator";
 
 export class ForeignChatroomsDAO {
@@ -40,7 +40,8 @@ export class ForeignChatroomsDAO {
      * @returns serverid
      */
     getChatroomServer(roomid: string): string | undefined {
-        // check if the clients Map<string, Set<string>> has roomid and return serverdi
+        // check if the clients Map<string, Set<string>> has roomid and return serverid
+        // TODO: return chatrooms of avaiable servers
         return _.findKey(this.chatrooms, (server) => server.has(roomid))
     }
 
@@ -72,7 +73,7 @@ export class ForeignChatroomsDAO {
      * @returns ForeignChatroomInterface
      */
     getChatrooms(): ChatroomsObject {
-        const chatrooms:any = {}
+        const chatrooms: any = {}
         for (const key in this.chatrooms) {
             chatrooms[`${key}`] = [...this.chatrooms[key]]
         }

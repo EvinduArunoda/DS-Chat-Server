@@ -35,6 +35,10 @@ export class ServersDAO {
         this.availableServers = servers
     }
 
+    getAvailableServers() {
+        return this.availableServers
+    }
+
     hasLeaderMajority(): boolean {
         return this.availableServers.length >= new ServerList().getMajorityCount()
     }

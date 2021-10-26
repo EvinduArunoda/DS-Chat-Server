@@ -34,6 +34,7 @@ export class ChatroomService {
         // const rooms = ServiceLocator.chatroomDAO.getRoomIds()
         const rooms = ServiceLocator.foreignChatroomsDAO.getRoomIds()
         writeJSONtoSocket(sock, { type: responseTypes.ROOMLIST, rooms });
+        // TODO: ask from leader. if leader is not avaialble show local chatrooms
         console.log("ChatroomService.listChatrooms done...");
     }
 

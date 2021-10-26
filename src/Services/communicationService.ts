@@ -141,7 +141,6 @@ export class CommunicationService {
         const leaderid = ServiceLocator.serversDAO.getLeaderId()
         const serverid = getServerId()
         // check if the server is the leader before connecting
-        // TODO: may be changed
         if (leaderid === serverid) {
             return new Promise((resolve, reject) => {
                 resolve(ServiceLocator.foreignChatroomsDAO.getChatroomServer(roomid))
