@@ -50,4 +50,12 @@ export class ServersDAO {
     getDeletedChatrooms(): string[] {
         return this.deletedChatrooms
     }
+
+    addDeletedClient(identity: string) {
+        this.deletedClients = [...this.deletedClients, identity]
+    }
+
+    addDeletedChatroom(roomid: string) {
+        this.deletedChatrooms = [...this.deletedChatrooms, roomid]
+    }
 }

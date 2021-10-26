@@ -181,7 +181,8 @@ export class CommunicationService {
                     })
                     resolve(true)
                 } else {
-                    // TODO: add to message queue
+                    // add to message queue
+                    ServiceLocator.serversDAO.addDeletedChatroom(roomid)
                 }
             })
         } else {
@@ -193,7 +194,8 @@ export class CommunicationService {
                 socket.on('data', (buffer) => {
                     const data = readJSONfromBuffer(buffer);
                     if (!data.acknowledged) {
-                        // TODO: add to message queue
+                        // add to message queue
+                        ServiceLocator.serversDAO.addDeletedChatroom(roomid)
                     }
                     resolve(data.acknowledged)
                 });
@@ -233,7 +235,8 @@ export class CommunicationService {
                     })
                     resolve(true)
                 } else {
-                    // TODO: add to message queue  
+                    // add to message queue
+                    ServiceLocator.serversDAO.addDeletedClient(identity)
                 }
             })
         } else {
@@ -245,7 +248,8 @@ export class CommunicationService {
                 socket.on('data', (buffer) => {
                     const data = readJSONfromBuffer(buffer);
                     if (!data.acknowledged) {
-                        // TODO: add to message queue
+                        // add to message queue
+                        ServiceLocator.serversDAO.addDeletedClient(identity)
                     }
                     resolve(data.acknowledged)
                 });
@@ -362,7 +366,7 @@ export class CommunicationService {
     }
 
     static respondHeartBeat(data: any, socket: Socket) {
-        const {leaderid, clock} = data;
+        const { leaderid, clock } = data;
         writeJSONtoSocket(socket, { type: responseTypes.HEARTBEAT, serverid: getServerId() })
         if (getServerId() > leaderid) {
             ElectionService.startElection()
