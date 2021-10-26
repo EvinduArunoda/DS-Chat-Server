@@ -1,22 +1,14 @@
 import _, { indexOf } from "lodash";
 import { Server, ServerInterface } from "../Interfaces/ServerInterface"
-import { getServerId } from "../Utils/utils";
+import { getServerIdNumber } from "../Utils/utils";
 const fs = require('fs');
 
 const data = fs.readFileSync('config.txt', 'utf8').toString().split('\n').map((el: string) => el.split(/\s*[\s,]\s*/));
 
-interface ServersInterface {
-    [key:number] : {
-        "serverAddress": string, "clientsPort": number, "coordinationPort": number
-    };
-}
-
-let servers : ServersInterface = {}
+let servers : ServerInterface = {}
 
 data.forEach((element: any) => {
-    servers[indexOf(data,element)+1] = {
-        "serverAddress": element[1], "clientsPort": parseInt(element[2],10), "coordinationPort": parseInt(element[3],10)
-    }
+    servers[indexOf(data,element)+1] = new Server(indexOf(data,element)+1, element[1], parseInt(element[2],10), parseInt(element[3],10))
 });
 
 
@@ -34,7 +26,7 @@ export class ServerList {
     getHigherUpServers(): Server[] {
         const higherUpServers = []
         for (let key in this.serverList) {
-            if (parseInt(key) < parseInt(getServerId())) {
+            if (parseInt(key) < getServerIdNumber()) {
                 higherUpServers.push(this.serverList[key])
             }
         }

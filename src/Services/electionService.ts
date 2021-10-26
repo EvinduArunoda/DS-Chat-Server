@@ -4,7 +4,7 @@ import { ServerList } from "../Constants/servers";
 import { ChatroomsObject } from "../Interfaces/ForeignChatroomInterface";
 import { ClientsObject } from "../Interfaces/ForeignClientInterface";
 import { ServiceLocator } from "../Utils/serviceLocator";
-import { getServerId, readJSONfromBuffer, writeJSONtoSocket } from "../Utils/utils";
+import { getServerId, getServerIdNumber, readJSONfromBuffer, writeJSONtoSocket } from "../Utils/utils";
 import { LeaderService } from "./leaderService";
 
 export class ElectionService {
@@ -109,7 +109,7 @@ export class ElectionService {
                             //re election
                             this.startElection(true)
                         }
-                    }, higherUpServers.length == 1 ? 200 : 1000 * parseInt(getServerId()))
+                    }, higherUpServers.length == 1 ? 200 : 1000 * getServerIdNumber())
                 }else{
                     //    set this server as leader n broadcast
                     const leaderid = getServerId();

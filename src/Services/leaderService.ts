@@ -1,5 +1,5 @@
 import { Socket } from "net";
-import { getServerId, isValidIdentity, readJSONfromBuffer, writeJSONtoSocket } from "../Utils/utils";
+import { getServerId, getServerIdNumber, isValidIdentity, readJSONfromBuffer, writeJSONtoSocket } from "../Utils/utils";
 import { ServiceLocator } from "../Utils/serviceLocator";
 import { ServerList } from "../Constants/servers";
 import { responseTypes } from "../Constants/responseTypes";
@@ -13,7 +13,7 @@ export class LeaderService {
         //add all requests to promisesList
         const promisesList: Array<Promise<any>> = [];
 
-        serverList.getServerIds().filter(serverid => parseInt(serverid) != parseInt(getServerId())).forEach((serverid: string) => {
+        serverList.getServerIds().filter(serverid => parseInt(serverid) != getServerIdNumber()).forEach((serverid: string) => {
             const { serverAddress: host, coordinationPort: port } = serverList.getServer(serverid);
             const socket = new Socket()
             socket.connect(port, host)
@@ -46,7 +46,7 @@ export class LeaderService {
         Promise.all(promisesList).then((values) => {
             const serverids: string[] = values.filter(value => value !== null).map(res => res.serverid)
             // check if responses have a higher server id
-            const hasHigherValue = serverids.filter(id => parseInt(id) > parseInt(getServerId())).length > 0
+            const hasHigherValue = serverids.filter(id => parseInt(id) > getServerIdNumber()).length > 0
             if (hasHigherValue) return
 
             // update available server count
