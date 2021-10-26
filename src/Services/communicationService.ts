@@ -20,12 +20,12 @@ export class CommunicationService {
         const serverid = getServerId()
         // check if the server is the leader before connecting
         if (leaderid === serverid) {
-            return new Promise((resolve, reject) => {
+            return new Promise(async (resolve, reject) => {
                 // Check database
                 if (ServiceLocator.foreignClientsDAO.isRegistered(identity)) {
                     resolve(true);
                     // check if the leader has majority
-                } else if (LeaderService.hasMajority()) {
+                } else if (await LeaderService.hasMajority()) {
                     ServiceLocator.serversDAO.incrementClock()
                     ServiceLocator.foreignClientsDAO.addNewClient(serverid, identity)
                     // Inform other servers
@@ -83,11 +83,11 @@ export class CommunicationService {
         const serverid = getServerId()
         // check if the server is the leader before connecting
         if (leaderid === serverid) {
-            return new Promise((resolve, reject) => {
+            return new Promise(async (resolve, reject) => {
                 if (ServiceLocator.foreignChatroomsDAO.isRegistered(roomid)) {
                     resolve(true);
                     // check if the leader has majority
-                } else if (LeaderService.hasMajority()) {
+                } else if (await LeaderService.hasMajority()) {
                     ServiceLocator.serversDAO.incrementClock()
                     ServiceLocator.foreignChatroomsDAO.addNewChatroom(serverid, roomid)
                     // Inform other servers
@@ -169,9 +169,9 @@ export class CommunicationService {
         const serverid = getServerId()
         // check if the server is the leader before connecting
         if (leaderid === serverid) {
-            return new Promise((resolve, reject) => {
+            return new Promise(async (resolve, reject) => {
                 // check if the leader has majority
-                if (LeaderService.hasMajority()) {
+                if (await LeaderService.hasMajority()) {
                     ServiceLocator.serversDAO.incrementClock()
                     ServiceLocator.foreignChatroomsDAO.removeChatroom(serverid, roomid);
                     // inform other servers
@@ -223,9 +223,9 @@ export class CommunicationService {
         const serverid = getServerId()
         // check if the server is the leader before connecting
         if (leaderid === serverid) {
-            return new Promise((resolve, reject) => {
+            return new Promise(async (resolve, reject) => {
                 // check if the leader has majority
-                if (LeaderService.hasMajority()) {
+                if (await LeaderService.hasMajority()) {
                     ServiceLocator.serversDAO.incrementClock()
                     ServiceLocator.foreignClientsDAO.removeClient(serverid, identity);
                     // inform other servers
