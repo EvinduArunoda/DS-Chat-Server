@@ -375,4 +375,66 @@ export class CommunicationService {
             ElectionService.startElection()
         }
     }
+
+    static getLatestClockData() {
+        console.log('REQUEST DATA')
+        const serverList = new ServerList()
+        //add all requests to promisesList
+        const promisesList: Array<Promise<any>> = [];
+
+        serverList.getServerIds().filter(serverid => parseInt(serverid) != parseInt(getServerId())).forEach((serverid: string) => {
+            const { serverAddress: host, coordinationPort: port } = serverList.getServer(serverid);
+            const socket = new Socket()
+            socket.connect(port, host)
+            socket.setTimeout(10000);
+            writeJSONtoSocket(socket, { type: responseTypes.REQUEST_DATA })
+            const promise = new Promise((resolve, reject) => {
+                socket.on('data', (buffer) => {
+                    const data = readJSONfromBuffer(buffer);
+                    const { leaderid, clock, clients, chatrooms } = data
+                    resolve({ leaderid, clock, clients, chatrooms })
+                    socket.end()
+                });
+                // server does not response
+                socket.on('timeout', () => {
+                    resolve(null)
+                    socket.end()
+                });
+
+                socket.on('error', (err) => {
+                    console.log(' request leader id broadcast error:', err.message)
+                    resolve(null)
+                    socket.end()
+                })
+            });
+            promisesList.push(promise);
+        });
+
+        Promise.all(promisesList).then((values) => {
+            const responses = values.filter(value => value !== null)
+
+            let latestData = {
+                leaderid: ServiceLocator.serversDAO.getLeaderId(),
+                clock: ServiceLocator.serversDAO.getClock(),
+                clients: ServiceLocator.foreignClientsDAO.getClients(),
+                chatrooms: ServiceLocator.foreignChatroomsDAO.getChatrooms()
+            }
+            let updated = false
+
+            for (const res of responses) {
+                // get the highest leader id with letest clock
+                if ((res.clock === latestData.clock && res.leaderid > latestData.leaderid) || res.clock > latestData.clock) {
+                    latestData = res;
+                    updated = true
+                }
+            }
+
+            // update database
+            if (updated) {
+                ServiceLocator.serversDAO.setLeaderId(latestData.leaderid);
+                this.updateDatabase(latestData)
+            }
+
+        });
+    }
 }
