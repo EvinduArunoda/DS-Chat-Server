@@ -3,7 +3,7 @@ import { Server, ServerInterface } from "../Interfaces/ServerInterface"
 import { getServerIdNumber } from "../Utils/utils";
 const fs = require('fs');
 
-const data = fs.readFileSync('config.txt', 'utf8').toString().split('\n').map((el: string) => el.split(/\s*[\s,]\s*/));
+const data = fs.readFileSync('config.txt', 'utf8').toString().trim().split('\n').map((el: string) => el.split(/\s*[\s,]\s*/));
 
 let servers : ServerInterface = {}
 
@@ -26,7 +26,7 @@ export class ServerList {
     getHigherUpServers(): Server[] {
         const higherUpServers = []
         for (let key in this.serverList) {
-            if (parseInt(key) < getServerIdNumber()) {
+            if (parseInt(key) > getServerIdNumber()) {
                 higherUpServers.push(this.serverList[key])
             }
         }
