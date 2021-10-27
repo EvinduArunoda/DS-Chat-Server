@@ -12,7 +12,7 @@ services:
       - '5556:5556'
     links:
       - s4
-      - s5
+      - s6
     environment:
       SERVER_ID: 1
   s4:
