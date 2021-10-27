@@ -1,7 +1,8 @@
-# Distributed Chat Apllication
+# Distributed Chat Application
 
-## Pre requisits
+## Pre requisites
 Docker
+
 Docker compose
 
 ## How to run it
