@@ -1,33 +1,33 @@
 version: '3.9'
 
 services:
-  s1:
+  s2:
     image: ds-node-docker
-    container_name: ds-s1
+    container_name: ds-s2
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - '4444:4444'
-      - '5555:5555'
+      - '4445:4445'
+      - '5556:5556'
     links:
-      - s3
+      - s4
       - s5
     environment:
       SERVER_ID: 1
-  s3:
+  s4:
     image: ds-node-docker
-    container_name: ds-s3
+    container_name: ds-s4
     ports:
-      - '4446:4446'
-      - '5557:5557'
+      - '4447:4447'
+      - '5558:5558'
     environment:
-      SERVER_ID: 3
-  s5:
+      SERVER_ID: 4
+  s6:
     image: ds-node-docker
-    container_name: ds-s5
+    container_name: ds-s6
     ports:
-      - '4448:4448'
-      - '5559:5559'
+      - '4449:4449'
+      - '5560:5560'
     environment:
-      SERVER_ID: 5
+      SERVER_ID: 6
