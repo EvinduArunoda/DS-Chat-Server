@@ -131,6 +131,7 @@ coordinationServer.listen(coordinationPort, serverAddress, () => {
 setTimeout(() => {
     cron.schedule('*/10 * * * * *', () => {
         if(getServerId() === ServiceLocator.serversDAO.getLeaderId()) {
+            console.log("heartbeat")
             LeaderService.hasMajority(true)
         }
     });

@@ -48,7 +48,8 @@ export class LeaderService {
         const serverids: string[] = responses.map(res => res.serverid)
 
         if (hasMajorityNow) {
-            ServiceLocator.serversDAO.incrementClock()
+            // check if response updated the db
+            let isUpdated = false
             // update db with responses
             for (const res of responses) {
                 const { serverid, deletedClients, deletedChatrooms, restarted } = res
@@ -59,15 +60,19 @@ export class LeaderService {
                     ServiceLocator.foreignClientsDAO.removeServer(serverid)
                     ServiceLocator.foreignClientsDAO.removeServer(serverid)
                 }
+                isUpdated = isUpdated || restarted || deletedClients.length > 0 || deletedChatrooms.length > 0
             }
-            // inform other servers
-            LeaderService.broadcastServers({
-                type: responseTypes.BROADCAST_SERVER_UPDATE,
-                leaderid: ServiceLocator.serversDAO.getLeaderId(),
-                clock: ServiceLocator.serversDAO.getClock(),
-                clients: ServiceLocator.foreignClientsDAO.getClients(),
-                chatrooms: ServiceLocator.foreignChatroomsDAO.getChatrooms()
-            })
+            if (isUpdated) {
+                ServiceLocator.serversDAO.incrementClock()
+                // inform other servers
+                LeaderService.broadcastServers({
+                    type: responseTypes.BROADCAST_SERVER_UPDATE,
+                    leaderid: ServiceLocator.serversDAO.getLeaderId(),
+                    clock: ServiceLocator.serversDAO.getClock(),
+                    clients: ServiceLocator.foreignClientsDAO.getClients(),
+                    chatrooms: ServiceLocator.foreignChatroomsDAO.getChatrooms()
+                })
+            }
         }
         // check if responses have a higher server id
         const hasHigherValue = serverids.filter(id => parseInt(id) > getServerIdNumber()).length > 0
@@ -148,6 +153,7 @@ export class LeaderService {
                 console.log('broadcast error:', err.message)
                 socket.end()
             })
+            socket.end()
         });
     }
 
