@@ -109,7 +109,7 @@ export class ChatroomService {
                 // broadcast to previous room
                 ChatroomService.broadcast(former, { type: responseTypes.ROOM_CHANGE, identity, former, roomid });
                 // redirect to new server room
-                const {serverAddress :host, clientsPort: port} = new ServerList().getServer(serverid);
+                const {address :host, clientsPort: port} = new ServerList().getServer(serverid);
                 writeJSONtoSocket(sock, {type: responseTypes.ROUTE, roomid, host, port: port.toString()})
             }
         }
