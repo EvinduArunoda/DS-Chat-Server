@@ -75,7 +75,7 @@ export class LeaderService {
 
         // update available server count
         ServiceLocator.serversDAO.updateAvailableServers(serverids)
-        const hasMajority = serverids.length >= new ServerList().getMajorityCount()
+        const hasMajority = serverids.length >= new ServerList().getMajorityCount() - 1
 
         return hasMajority
     }

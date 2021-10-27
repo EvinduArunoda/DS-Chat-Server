@@ -55,6 +55,7 @@ export class CommunicationService {
                     else {
                         resolve(false)
                     }
+                    socket.end();
                 });
 
                 socket.on('error', (error) => {
@@ -64,9 +65,9 @@ export class CommunicationService {
                         .catch(err => {
                             console.log('error', err.message)
                         })
+                    socket.end();
                 });
 
-                socket.end();
             })
         }
     }
@@ -117,6 +118,7 @@ export class CommunicationService {
                     else {
                         resolve(false)
                     }
+                    socket.end();
                 });
 
                 socket.on('error', (error) => {
@@ -126,8 +128,8 @@ export class CommunicationService {
                         .catch(err => {
                             console.log('error', err.message)
                         })
+                        socket.end();
                 });
-                socket.end();
             })
         }
     }
@@ -157,8 +159,8 @@ export class CommunicationService {
                 socket.on('data', (buffer) => {
                     const data = readJSONfromBuffer(buffer);
                     resolve(data.serverid)
+                    socket.end();
                 });
-                socket.end();
             })
         }
     }
@@ -201,6 +203,7 @@ export class CommunicationService {
                         ServiceLocator.serversDAO.addDeletedChatroom(roomid)
                     }
                     resolve(data.acknowledged)
+                    socket.end();
                 });
                 socket.on('error', (error) => {
                     ElectionService.startElection().then(() => {
@@ -209,9 +212,8 @@ export class CommunicationService {
                         .catch(err => {
                             console.log('error', err.message)
                         })
+                    socket.end();
                 });
-
-                socket.end();
             })
         }
     }
@@ -255,6 +257,7 @@ export class CommunicationService {
                         ServiceLocator.serversDAO.addDeletedClient(identity)
                     }
                     resolve(data.acknowledged)
+                    socket.end();
                 });
                 socket.on('error', (error) => {
                     ElectionService.startElection().then(() => {
@@ -263,8 +266,8 @@ export class CommunicationService {
                         .catch(err => {
                             console.log('error', err.message)
                         })
+                    socket.end();
                 });
-                socket.end();
             })
         }
     }
@@ -354,6 +357,7 @@ export class CommunicationService {
         socket.on('data', (buffer) => {
             const data = readJSONfromBuffer(buffer);
             this.updateDatabase(data)
+            socket.end()
         });
 
         socket.on('error', (err) => {
