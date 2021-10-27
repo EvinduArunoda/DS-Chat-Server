@@ -3,12 +3,19 @@ import { getServerId, readJSONfromBuffer } from "./Utils/utils";
 import { responseTypes } from "./Constants/responseTypes";
 import { ServiceLocator } from "./Utils/serviceLocator";
 import { ServerList } from "./Constants/servers";
-import { LeaderService } from "./Services/leaderService"
-import { ElectionService } from "./Services/electionService";
+import { CommunicationService } from "./Services/communicationService";
+import { LeaderService } from "./Services/leaderService";
+const cron = require('node-cron');
 
+// server id
+if (!process.env.SERVER_ID) {
+    process.env['SERVER_ID'] = '1';
+}
 
 const { serverAddress, coordinationPort, clientsPort } = new ServerList().getServer(getServerId().toString());
-ServiceLocator.leaderDAO.setLeaderId('1')
+
+// Get initial data from other nodes
+CommunicationService.requestInitialData()
 
 // server for cleints
 const server = net.createServer();
@@ -77,11 +84,11 @@ coordinationServer.on('connection', (sock: Socket) => {
         console.log(data)
 
         switch (data.type) {
-            //election
-            case "startelection":
+            // election
+            case responseTypes.START_ELECTION:
                 return ServiceLocator.electionHandler.approveElection(data, sock)
-            case "declareleader":
-                return ServiceLocator.electionHandler.setElectedLeader(data)
+            case responseTypes.DECLARE_LEADER:
+                return ServiceLocator.electionHandler.setElectedLeader(data, sock)
             // recieved by leader
             case responseTypes.IS_CLIENT:
                 return ServiceLocator.mainHandler.getLeaderHandler().isClient(data, sock)
@@ -93,15 +100,13 @@ coordinationServer.on('connection', (sock: Socket) => {
                 return ServiceLocator.mainHandler.getLeaderHandler().informRoomDeletion(data, sock)
             case responseTypes.INFORM_CLIENTDELETION:
                 return ServiceLocator.mainHandler.getLeaderHandler().informClientDeletion(data, sock)
-            // recieved by oter nodes
-            case responseTypes.BROADCAST_NEWIDENTITY:
-                return ServiceLocator.mainHandler.getCommunicationHandler().broadcastNewIdentity(data)
-            case responseTypes.BROADCAST_CREATEROOM:
-                return ServiceLocator.mainHandler.getCommunicationHandler().broadcastCreateroom(data)
-            case responseTypes.BROADCAST_DELETEROOM:
-                return ServiceLocator.mainHandler.getCommunicationHandler().broadcastDeleteroom(data)
-            case responseTypes.BROADCAST_QUIT:
-                return ServiceLocator.mainHandler.getCommunicationHandler().broadcastQuit(data)
+            // recieved by other nodes
+            case responseTypes.REQUEST_DATA:
+                return ServiceLocator.mainHandler.getLeaderHandler().provideLeaderState(sock)
+            case responseTypes.BROADCAST_SERVER_UPDATE:
+                return ServiceLocator.mainHandler.getCommunicationHandler().broadcastServerUpdate(data)
+            case responseTypes.HEARTBEAT:
+                return ServiceLocator.mainHandler.getCommunicationHandler().respondHeartBeat(data, sock)
             default:
                 break;
         }
@@ -122,3 +127,12 @@ coordinationServer.on('connection', (sock: Socket) => {
 coordinationServer.listen(coordinationPort, serverAddress, () => {
     console.log(`Coordination server port opened at ${serverAddress}:${coordinationPort}\n`);
 });
+
+setTimeout(() => {
+    cron.schedule('*/10 * * * * *', () => {
+        if(getServerId() === ServiceLocator.serversDAO.getLeaderId()) {
+            console.log("heartbeat")
+            LeaderService.hasMajority(true)
+        }
+    });
+}, 10000); // Wait for 10 seconds at begin

@@ -1,14 +1,35 @@
 import _ from "lodash";
 import { ServerList } from "../Constants/servers";
-import { ForeignChatroomInterface } from "../Interfaces/ForeignChatroomInterface";
+import { ChatroomsObject, ForeignChatroomInterface } from "../Interfaces/ForeignChatroomInterface";
+import { ServiceLocator } from "../Utils/serviceLocator";
 
 export class ForeignChatroomsDAO {
     private chatrooms: ForeignChatroomInterface = {};
 
     constructor() {
         new ServerList().getServerIds().forEach((serverName: string) => {
-            this.chatrooms[serverName] = new Set<string>()
+            this.chatrooms[serverName] = new Set<string>().add(`MainHall-s${serverName}`)
         })
+    }
+
+    /**
+     * remove chatrooms
+     * @param identities client ids
+     * @param serverid server id
+     */
+     removeChatrooms(serverid: string, identities: string[]): void {
+        for (const el of identities) {
+            this.chatrooms[serverid].delete(el);
+            console.log("ForeignChatroomsDAO.deleteClient", serverid, el);
+        }
+    }
+
+    /**
+     * remove server
+     * @param serverid server id
+     */
+    removeServer(serverid: string): void {
+        this.chatrooms[serverid] = new Set();
     }
 
     /**
@@ -38,9 +59,10 @@ export class ForeignChatroomsDAO {
      * @param roomid client id
      * @returns serverid
      */
-    getChatroomServer(roomid: string): string | undefined {
-        // check if the clients Map<string, Set<string>> has roomid and return serverdi
-        return _.findKey(this.chatrooms, (server) => server.has(roomid))
+    getChatroomServer(roomid: string, avaiableServers: string[]): string | undefined {
+        // check if the clients Map<string, Set<string>> has roomid and return serverid
+        const serverID = _.findKey(this.chatrooms, (server) => server.has(roomid));
+        return (serverID && avaiableServers.includes(serverID)) ? serverID : undefined;
     }
 
     /**
@@ -49,7 +71,7 @@ export class ForeignChatroomsDAO {
      * @param serverid server id
      */
     addNewChatroom(serverid: string, roomid: string): void {
-        if(this.chatrooms[serverid] === undefined){
+        if (this.chatrooms[serverid] === undefined) {
             this.chatrooms[serverid] = new Set()
         }
         this.chatrooms[serverid].add(roomid);
@@ -66,4 +88,25 @@ export class ForeignChatroomsDAO {
         console.log("ForeignChatroomsDAO.deleteChatroom", serverid, roomid);
     }
 
+    /**
+     * get chatrooms
+     * @returns ForeignChatroomInterface
+     */
+    getChatrooms(): ChatroomsObject {
+        const chatrooms: any = {}
+        for (const key in this.chatrooms) {
+            chatrooms[`${key}`] = [...this.chatrooms[key]]
+        }
+        return chatrooms
+    }
+
+    /**
+     * save an object of chatrooms
+     * @param chatroomsObject object of chatrooms
+     */
+    saveChatrooms(chatroomsObject: ChatroomsObject): void {
+        for (const key in chatroomsObject) {
+            this.chatrooms[`${key}`] = new Set(chatroomsObject[key])
+        }
+    }
 }

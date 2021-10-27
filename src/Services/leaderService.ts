@@ -1,5 +1,5 @@
 import { Socket } from "net";
-import { getServerId, isValidIdentity, writeJSONtoSocket } from "../Utils/utils";
+import { getServerId, getServerIdNumber, isValidIdentity, readJSONfromBuffer, writeJSONtoSocket } from "../Utils/utils";
 import { ServiceLocator } from "../Utils/serviceLocator";
 import { ServerList } from "../Constants/servers";
 import { responseTypes } from "../Constants/responseTypes";
@@ -7,30 +7,128 @@ import { responseTypes } from "../Constants/responseTypes";
 export class LeaderService {
     constructor() { }
 
-    static checkClientExists(data: any, sock: Socket): boolean {
+    static async hasMajority(isHeartbeat: boolean = false): Promise<boolean> {
+        // check if the leader has majority
+        const serverList = new ServerList()
+        //add all requests to promisesList
+        const promisesList: Array<Promise<any>> = [];
+        const hasMajorityNow = isHeartbeat && ServiceLocator.serversDAO.getAvailableServers().length >= new ServerList().getMajorityCount();
+
+        serverList.getServerIds().filter(serverid => parseInt(serverid) != getServerIdNumber()).forEach((serverid: string) => {
+            const { serverAddress: host, coordinationPort: port } = serverList.getServer(serverid);
+            const socket = new Socket()
+            socket.connect(port, host)
+            socket.setTimeout(1000);
+            writeJSONtoSocket(socket, { type: responseTypes.HEARTBEAT, leaderid: getServerId(), hasMajorityNow })
+            const promise = new Promise((resolve, reject) => {
+                socket.on('data', (buffer) => {
+                    const data = readJSONfromBuffer(buffer);
+                    const { serverid, deletedClients, deletedChatrooms, restarted } = data
+                    resolve({ serverid, deletedClients, deletedChatrooms, restarted })
+                    socket.end()
+                });
+                // server does not response
+                socket.on('timeout', () => {
+                    resolve(null)
+                    socket.end()
+                });
+
+                socket.on('error', (err) => {
+                    console.log(' request leader id broadcast error:', err.message)
+                    resolve(null)
+                    socket.end()
+                })
+            });
+            promisesList.push(promise);
+        });
+
+        const values = await Promise.all(promisesList)
+
+        const responses = values.filter(value => value !== null)
+        const serverids: string[] = responses.map(res => res.serverid)
+
+        if (hasMajorityNow) {
+            // check if response updated the db
+            let isUpdated = false
+            // update db with responses
+            for (const res of responses) {
+                const { serverid, deletedClients, deletedChatrooms, restarted } = res
+                // get the highest leader id with letest clock
+                ServiceLocator.foreignChatroomsDAO.removeChatrooms(serverid, deletedChatrooms)
+                ServiceLocator.foreignClientsDAO.removeClients(serverid, deletedClients)
+                if (restarted) {
+                    ServiceLocator.foreignClientsDAO.removeServer(serverid)
+                    ServiceLocator.foreignClientsDAO.removeServer(serverid)
+                }
+                isUpdated = isUpdated || restarted || deletedClients.length > 0 || deletedChatrooms.length > 0
+            }
+            if (isUpdated) {
+                ServiceLocator.serversDAO.incrementClock()
+                // inform other servers
+                LeaderService.broadcastServers({
+                    type: responseTypes.BROADCAST_SERVER_UPDATE,
+                    leaderid: ServiceLocator.serversDAO.getLeaderId(),
+                    clock: ServiceLocator.serversDAO.getClock(),
+                    clients: ServiceLocator.foreignClientsDAO.getClients(),
+                    chatrooms: ServiceLocator.foreignChatroomsDAO.getChatrooms()
+                })
+            }
+        }
+        // check if responses have a higher server id
+        const hasHigherValue = serverids.filter(id => parseInt(id) > getServerIdNumber()).length > 0
+        if (hasHigherValue) return false
+
+        // update available server count
+        ServiceLocator.serversDAO.updateAvailableServers(serverids)
+        const hasMajority = serverids.length >= new ServerList().getMajorityCount() - 1
+
+        return hasMajority
+    }
+
+    static async checkClientExists(data: any, sock: Socket): Promise<boolean> {
         const { identity, serverid } = data
         // Check database
         if (ServiceLocator.foreignClientsDAO.isRegistered(identity)) {
-            writeJSONtoSocket(sock, { exists: true, type: responseTypes.IS_CLIENT, identity });
-        } else {
+            writeJSONtoSocket(sock, { acknowledged: true, exists: true, type: responseTypes.IS_CLIENT, identity });
+            // check if the leader has majority
+        } else if (await this.hasMajority()) {
+            ServiceLocator.serversDAO.incrementClock()
             ServiceLocator.foreignClientsDAO.addNewClient(serverid, identity)
-            writeJSONtoSocket(sock, { exists: false, type: responseTypes.IS_CLIENT, identity });
+            writeJSONtoSocket(sock, { acknowledged: true, exists: false, type: responseTypes.IS_CLIENT, identity });
             // Inform other servers
-            LeaderService.broadcastServers({ type: responseTypes.BROADCAST_NEWIDENTITY, approved: true, identity, serverid })
+            LeaderService.broadcastServers({
+                type: responseTypes.BROADCAST_SERVER_UPDATE,
+                leaderid: ServiceLocator.serversDAO.getLeaderId(),
+                clock: ServiceLocator.serversDAO.getClock(),
+                clients: ServiceLocator.foreignClientsDAO.getClients(),
+                chatrooms: ServiceLocator.foreignChatroomsDAO.getChatrooms()
+            })
+        } else {
+            writeJSONtoSocket(sock, { acknowledged: false, exists: false, type: responseTypes.IS_CLIENT, identity });
         }
         return true
     }
 
-    static checkChatroomExists(data: any, sock: Socket): boolean {
+    static async checkChatroomExists(data: any, sock: Socket): Promise<boolean> {
         const { roomid, serverid } = data
         // Check database
         if (ServiceLocator.foreignChatroomsDAO.isRegistered(roomid)) {
-            writeJSONtoSocket(sock, { exists: true, type: responseTypes.IS_CHATROOM, roomid });
-        } else {
+            writeJSONtoSocket(sock, { acknowledged: true, exists: true, type: responseTypes.IS_CHATROOM, roomid });
+            // check if the leader has majority
+        } else if (await this.hasMajority()) {
+            ServiceLocator.serversDAO.incrementClock()
             ServiceLocator.foreignChatroomsDAO.addNewChatroom(serverid, roomid)
-            writeJSONtoSocket(sock, { exists: false, type: responseTypes.IS_CHATROOM, roomid });
+            writeJSONtoSocket(sock, { acknowledged: true, exists: false, type: responseTypes.IS_CHATROOM, roomid });
             // Inform other servers
-            LeaderService.broadcastServers({ type: responseTypes.BROADCAST_CREATEROOM, approved: true, roomid, serverid })
+            LeaderService.broadcastServers({
+                type: responseTypes.BROADCAST_SERVER_UPDATE,
+                leaderid: ServiceLocator.serversDAO.getLeaderId(),
+                clock: ServiceLocator.serversDAO.getClock(),
+                clients: ServiceLocator.foreignClientsDAO.getClients(),
+                chatrooms: ServiceLocator.foreignChatroomsDAO.getChatrooms()
+            })
+        } else {
+            writeJSONtoSocket(sock, { acknowledged: false, exists: false, type: responseTypes.IS_CHATROOM, roomid });
         }
         return true
     }
@@ -38,40 +136,77 @@ export class LeaderService {
     static getChatroomServer(data: any, sock: Socket): boolean {
         const { roomid } = data
         // Check database
-        const serverid = ServiceLocator.foreignChatroomsDAO.getChatroomServer(roomid)
+        const availableServers = ServiceLocator.serversDAO.getAvailableServers();
+        const serverid = ServiceLocator.foreignChatroomsDAO.getChatroomServer(roomid, availableServers)
         writeJSONtoSocket(sock, { serverid, type: responseTypes.CHATROOM_SERVER, roomid });
         return true
     }
 
     static broadcastServers(data: any) {
         const serverList = new ServerList()
-        serverList.getServerIds().filter(serverId => serverId != getServerId()).forEach((serverId: string) => {
-            const { serverAddress: host, coordinationPort: port } = serverList.getServer(serverId);
+        serverList.getServerIds().filter(serverid => serverid != getServerId()).forEach((serverid: string) => {
+            const { serverAddress: host, coordinationPort: port } = serverList.getServer(serverid);
             const socket = new Socket()
             socket.connect(port, host)
             writeJSONtoSocket(socket, data);
             socket.on('error', (err) => {
-                console.log('broadcast error:',err.message)
+                console.log('broadcast error:', err.message)
                 socket.end()
             })
+            socket.end()
         });
     }
 
-    static acknowledgeChatroomDeletion(data: any, sock: Socket): boolean {
+    static async acknowledgeChatroomDeletion(data: any, sock: Socket): Promise<boolean> {
         const { roomid, serverid } = data
-        ServiceLocator.foreignChatroomsDAO.removeChatroom(serverid, roomid);
-        writeJSONtoSocket(sock, { acknowledged: true, type: responseTypes.INFORM_ROOMDELETION, roomid });
-        // inform other servers
-        LeaderService.broadcastServers({ type: responseTypes.BROADCAST_DELETEROOM, roomid, serverid })
+        // check if the leader has majority
+        if (await this.hasMajority()) {
+            ServiceLocator.serversDAO.incrementClock()
+            ServiceLocator.foreignChatroomsDAO.removeChatroom(serverid, roomid);
+            writeJSONtoSocket(sock, { acknowledged: true, type: responseTypes.INFORM_ROOMDELETION, roomid });
+            // inform other servers
+            LeaderService.broadcastServers({
+                type: responseTypes.BROADCAST_SERVER_UPDATE,
+                leaderid: ServiceLocator.serversDAO.getLeaderId(),
+                clock: ServiceLocator.serversDAO.getClock(),
+                clients: ServiceLocator.foreignClientsDAO.getClients(),
+                chatrooms: ServiceLocator.foreignChatroomsDAO.getChatrooms()
+            })
+        } else {
+            writeJSONtoSocket(sock, { acknowledged: false, type: responseTypes.INFORM_ROOMDELETION, roomid });
+        }
         return true
     }
 
-    static acknowledgeClientDeletion(data: any, sock: Socket): boolean {
+    static async acknowledgeClientDeletion(data: any, sock: Socket): Promise<boolean> {
         const { identity, serverid } = data
-        ServiceLocator.foreignClientsDAO.removeClient(serverid, identity);
-        writeJSONtoSocket(sock, { acknowledged: true, type: responseTypes.INFORM_CLIENTDELETION, identity });
-        // inform other servers
-        LeaderService.broadcastServers({ type: responseTypes.BROADCAST_QUIT, identity, serverid })
+        // check if the leader has majority
+        if (await this.hasMajority()) {
+            ServiceLocator.serversDAO.incrementClock()
+            ServiceLocator.foreignClientsDAO.removeClient(serverid, identity);
+            writeJSONtoSocket(sock, { acknowledged: true, type: responseTypes.INFORM_CLIENTDELETION, identity });
+            // inform other servers
+            LeaderService.broadcastServers({
+                type: responseTypes.BROADCAST_SERVER_UPDATE,
+                leaderid: ServiceLocator.serversDAO.getLeaderId(),
+                clock: ServiceLocator.serversDAO.getClock(),
+                clients: ServiceLocator.foreignClientsDAO.getClients(),
+                chatrooms: ServiceLocator.foreignChatroomsDAO.getChatrooms()
+            })
+        } else {
+            writeJSONtoSocket(sock, { acknowledged: false, type: responseTypes.INFORM_CLIENTDELETION, identity });
+        }
+        return true
+    }
+
+    static provideLeaderState(sock: Socket): boolean {
+        writeJSONtoSocket(sock, {
+            type: responseTypes.REQUEST_DATA,
+            leaderid: ServiceLocator.serversDAO.getLeaderId(),
+            clock: ServiceLocator.serversDAO.getClock(),
+            clients: ServiceLocator.foreignClientsDAO.getClients(),
+            chatrooms: ServiceLocator.foreignChatroomsDAO.getChatrooms()
+        })
         return true
     }
 }
