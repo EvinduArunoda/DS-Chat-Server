@@ -6,7 +6,7 @@ export interface ServerInterface {
 
 export class Server {
     private serverid: number
-    private address: string
+    public address: string
     public clientsPort: number
     public coordinationPort: number
 
