@@ -11,18 +11,10 @@ services:
       - '4444:4444'
       - '5555:5555'
     links:
-      - s2
       - s3
+      - s5
     environment:
       SERVER_ID: 1
-  s2:
-    image: ds-node-docker
-    container_name: ds-s2
-    ports:
-      - '4445:4445'
-      - '5556:5556'
-    environment:
-      SERVER_ID: 2
   s3:
     image: ds-node-docker
     container_name: ds-s3
@@ -31,3 +23,11 @@ services:
       - '5557:5557'
     environment:
       SERVER_ID: 3
+  s5:
+    image: ds-node-docker
+    container_name: ds-s5
+    ports:
+      - '4448:4448'
+      - '5559:5559'
+    environment:
+      SERVER_ID: 5
