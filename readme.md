@@ -5,7 +5,7 @@ Docker
 Docker compose
 
 ## How to run it
-```docker-compose uo -d```
+```docker-compose up -d```
 
 ## Changing configs
 *config.txt* contains the list of containers and seperate by lines. Each line contains server name, address, client port and coorination port seperated by tabs.
