@@ -89,7 +89,7 @@ export class ChatroomService {
         const identity = ServiceLocator.clientsDAO.getIdentity(sock)
         if (!former || !identity) return false;
         // if the client is not the owner of another chat room
-        if (!isValidIdentity(roomid) || ServiceLocator.chatroomDAO.isOwner(identity, former)) {
+        if (ServiceLocator.chatroomDAO.isOwner(identity, former)) {
             writeJSONtoSocket(sock, { type: responseTypes.ROOM_CHANGE, identity, former: former, roomid: former });
         // if the room is in same server
         } else if (ServiceLocator.chatroomDAO.isRegistered(roomid)) {
