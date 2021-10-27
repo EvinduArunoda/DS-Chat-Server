@@ -18,7 +18,7 @@ export class Server {
     }
 
     get serverAddress(): string {
-        if((this.serverid + getServerIdNumber()) % 2 === 0) return 'localhost'
+        if((this.serverid + getServerIdNumber()) % 2 === 0) return `s${this.serverid}`
         return this.address
         // return `s${this.serverid}`
     }
