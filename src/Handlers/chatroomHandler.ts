@@ -22,7 +22,7 @@ export class ChatroomHandler {
         return ChatroomService.deleteRoom(data, sock);    
     }
 
-    moveJoin(data:any, sock:Socket): boolean {
+    moveJoin(data:any, sock:Socket): Promise<boolean> {
         return ChatroomService.moveJoin(data, sock);    
     }
 

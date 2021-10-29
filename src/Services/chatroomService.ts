@@ -122,13 +122,13 @@ export class ChatroomService {
         return true;
     }
 
-    static moveJoin(data: any, sock: Socket): boolean {
+    static async moveJoin(data: any, sock: Socket): Promise<boolean> {
         const { roomid, identity, former } = data;
         if (!former || !identity || !roomid) return false;
         // add client to new server
         ServiceLocator.clientsDAO.addNewClient(identity, sock);
         // if the room does not exist
-        if (!ServiceLocator.chatroomDAO.isRegistered(roomid)) {
+        if (!await CommunicationService.isChatroomRegistered(roomid) && !await CommunicationService.isClientRegistered(identity)) {
             // add to mainhall
             const mainHallId = getMainHallId();
             ServiceLocator.clientsDAO.joinChatroom(mainHallId, identity);
