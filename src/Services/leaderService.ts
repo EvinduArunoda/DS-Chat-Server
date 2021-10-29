@@ -58,9 +58,16 @@ export class LeaderService {
                 ServiceLocator.foreignClientsDAO.removeClients(serverid, deletedClients)
                 if (restarted) {
                     ServiceLocator.foreignClientsDAO.removeServer(serverid)
-                    ServiceLocator.foreignClientsDAO.removeServer(serverid)
+                    ServiceLocator.foreignChatroomsDAO.removeServer(serverid)
                 }
                 isUpdated = isUpdated || restarted || deletedClients.length > 0 || deletedChatrooms.length > 0
+            }
+            // check your own db
+            const restartedOwn = ServiceLocator.serversDAO.getRestarted()
+            if (restartedOwn) {
+                ServiceLocator.foreignClientsDAO.removeServer(getServerId())
+                ServiceLocator.foreignChatroomsDAO.removeServer(getServerId())
+                isUpdated = true
             }
             if (isUpdated) {
                 ServiceLocator.serversDAO.incrementClock()
