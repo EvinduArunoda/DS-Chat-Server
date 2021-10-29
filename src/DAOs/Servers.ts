@@ -39,7 +39,7 @@ export class ServersDAO {
     }
 
     updateAvailableServers(servers: string[]) {
-        this.availableServers = servers
+        this.availableServers = [...servers, getServerId()]
     }
 
     getAvailableServers() {
