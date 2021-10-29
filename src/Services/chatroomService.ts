@@ -111,6 +111,8 @@ export class ChatroomService {
                 // redirect to new server room
                 const {address :host, clientsPort: port} = new ServerList().getServer(serverid);
                 writeJSONtoSocket(sock, {type: responseTypes.ROUTE, roomid, host, port: port.toString()})
+            } else {
+                writeJSONtoSocket(sock, { type: responseTypes.ROOM_CHANGE, identity, former: former, roomid: former });
             }
         }
         return true;
