@@ -106,7 +106,10 @@ export class ChatroomService {
             if (!!serverid) {
                 // remove from previous room
                 ServiceLocator.chatroomDAO.removeParticipant(former, identity);
-                // broadcast to previous room
+                // remove from client list
+                ServiceLocator.clientsDAO.removeClient(sock);
+                // inform other servers
+                await CommunicationService.informClientDeletion(identity);                // broadcast to previous room
                 ChatroomService.broadcast(former, { type: responseTypes.ROOM_CHANGE, identity, former, roomid });
                 // redirect to new server room
                 const {address :host, clientsPort: port} = new ServerList().getServer(serverid);
